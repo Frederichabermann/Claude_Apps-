@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trainingsplan 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#14171a;
+    --bg-card:#1c2023;
+    --bg-card-2:#20262a;
+    --line:#2a3034;
+    --text:#ece8de;
+    --text-dim:#8b939a;
+    --text-faint:#565d63;
+
+    --lauf:#d65a31;
+    --lauf-dim:rgba(214,90,49,.16);
+    --kraft:#3e8c77;
+    --kraft-dim:rgba(62,140,119,.16);
+    --sauna:#e0a526;
+    --sauna-dim:rgba(224,165,38,.16);
+    --under:#d6453a;
+    --over:#e0a526;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+  .display{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.03em;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+
+  #app{max-width:980px;margin:0 auto;padding:20px 16px 60px;}
+
+  header{padding:8px 4px 22px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+  .eyebrow{color:var(--text-faint);font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin:0 0 4px;}
+  h1{font-size:clamp(34px,8vw,54px);margin:0;line-height:.95;text-transform:uppercase;font-family:'Bebas Neue',sans-serif;}
+  .daterange{color:var(--text-dim);font-size:13px;margin-top:6px;}
+
+  .lap-track{position:relative;margin-top:20px;}
+  .lane{display:flex;gap:2px;height:7px;margin-bottom:3px;}
+  .lane div{flex:1;border-radius:2px;background:var(--line);transition:background .25s;}
+  .lane-lauf div.full{background:var(--lauf);}
+  .lane-lauf div.partial{background:var(--lauf-dim);}
+  .lane-kraft div.full{background:var(--kraft);}
+  .lane-kraft div.partial{background:var(--kraft-dim);}
+  .lane-sauna div.full{background:var(--sauna);}
+  .lane-sauna div.partial{background:var(--sauna-dim);}
+  .week-marker{position:absolute;top:-9px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text);transform:translateX(-50%);}
+  .lap-labels{display:flex;justify-content:space-between;color:var(--text-faint);font-size:10px;margin-top:4px;font-family:'JetBrains Mono',monospace;}
+
+  nav.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab-btn{font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:16px;background:var(--bg-card);color:var(--text-dim);border:1px solid var(--line);padding:9px 16px;border-radius:999px;cursor:pointer;transition:all .15s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--bg);}
+  .tab-btn[data-tab="lauf"].active{background:var(--lauf);border-color:var(--lauf);}
+  .tab-btn[data-tab="kraft"].active{background:var(--kraft);border-color:var(--kraft);}
+  .tab-btn[data-tab="sauna"].active{background:var(--sauna);border-color:var(--sauna);}
+  .tab-btn[data-tab="uebersicht"].active{background:var(--text);border-color:var(--text);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .legend{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:var(--text-dim);line-height:1.7;}
+  .legend b{color:var(--text);}
+
+  .week-card{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;}
+  .week-card.current{outline:1px solid var(--text-dim);}
+  .week-grid{display:grid;grid-template-columns:60px 1fr 1fr;gap:10px;align-items:stretch;}
+  .week-grid.sauna-grid{grid-template-columns:60px 1fr 1fr 1fr;}
+  .week-num-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4px;}
+  .week-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text-faint);line-height:1;}
+  .week-card.current .week-num{color:var(--text);}
+  .phase-tag{font-size:8.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;text-align:center;}
+  .extra-row{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+  .extra-title{font-size:9.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .extra-desc-input{flex:1;min-width:150px;background:var(--bg-card-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:6px 9px;}
+
+  .week-card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .week-card-head .phase-tag{margin-top:0;}
+  .u-add{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:5px 12px;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;}
+  .u-add:hover{color:var(--text);border-color:var(--text-dim);}
+  .unit-list{display:flex;flex-direction:column;gap:8px;}
+  .unit-row{background:var(--bg-card-2);border-radius:8px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid transparent;}
+  .unit-row.status-under{background:rgba(214,69,58,.14);border-color:rgba(214,69,58,.45);}
+  .unit-row.status-over{background:rgba(224,165,38,.14);border-color:rgba(224,165,38,.5);}
+  .unit-field{display:flex;flex-direction:column;gap:2px;}
+  .unit-field input[type=date], .unit-field input[type=number], .unit-field input[type=text]{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:5px 7px;}
+  .unit-field input[type=number]{width:70px;}
+  .unit-field input[type=text]{font-family:'Inter',sans-serif;min-width:140px;width:100%;}
+  .unit-row .check-btn{padding:5px 0;}
+  .u-remove{margin-left:auto;background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:15px;padding:2px 4px;align-self:center;}
+  .u-remove:hover{color:var(--under);}
+  .empty-hint{color:var(--text-faint);font-size:12.5px;font-style:italic;padding:6px 2px;}
+
+  .session-cell{background:var(--bg-card-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;border:1px solid transparent;}
+  .field-label{display:none;color:var(--text-faint);font-size:10px;text-transform:uppercase;letter-spacing:.1em;}
+  .session-date{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-dim);}
+  .session-detail{font-size:13.5px;line-height:1.4;}
+  .session-detail b{color:var(--text);}
+
+  .session-cell.status-under{background:rgba(214,69,58,.14);border-color:rgba(214,69,58,.45);}
+  .session-cell.status-over{background:rgba(224,165,38,.14);border-color:rgba(224,165,38,.5);}
+
+  .input-row{margin-top:auto;padding-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .km-input, .gaenge-input{width:82px;background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:5px 7px;}
+  .date-input{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 6px;}
+  .km-input::placeholder, .gaenge-input::placeholder{color:var(--text-faint);}
+  .date-input-label{font-size:9.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;width:100%;}
+
+  .check-btn{border:none;background:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-faint);display:flex;align-items:center;gap:6px;padding:0;}
+  .check-btn::before{content:'';width:15px;height:15px;border-radius:4px;border:1.5px solid var(--text-faint);flex:none;}
+  .kraft .check-btn.done{color:var(--kraft);}
+  .kraft .check-btn.done::before{background:var(--kraft);border-color:var(--kraft);}
+  .sauna .check-btn.done{color:var(--sauna);}
+  .sauna .check-btn.done::before{background:var(--sauna);border-color:var(--sauna);}
+
+  .scope-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .scope-row select{background:var(--bg-card);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font-family:'Inter',sans-serif;font-size:13px;}
+
+  .upload-box{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px;}
+  .upload-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;color:var(--text);margin-bottom:4px;}
+  .upload-desc{font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;}
+  .upload-desc b{color:var(--text);}
+  #laufExcelInput{color:var(--text-dim);font-size:12.5px;font-family:'Inter',sans-serif;}
+  .upload-status{margin-top:8px;font-size:12.5px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+  .upload-status.error{color:var(--under);}
+  .upload-status.ok{color:var(--kraft);}
+
+  .bulk-box{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px;}
+  .bulk-triggers{display:flex;gap:8px;flex-wrap:wrap;}
+  .bulk-trigger{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .bulk-trigger:hover{color:var(--text);border-color:var(--text-dim);}
+  .bulk-form{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+  .bulk-form-inner{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;}
+  .bulk-weekdays{display:flex;gap:10px;flex-wrap:wrap;}
+  .wd-check{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-dim);font-family:'Inter',sans-serif;}
+  .wd-check input{accent-color:var(--kraft);}
+  .bulk-actions{display:flex;gap:8px;align-items:center;}
+  .bulk-apply{background:var(--kraft);border:none;color:var(--bg);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+  .bulk-cancel{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:8px 14px;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .bulk-status{width:100%;margin-top:8px;font-size:12.5px;font-family:'JetBrains Mono',monospace;color:var(--text-dim);}
+  .bulk-status.error{color:var(--under);}
+  .bulk-status.ok{color:var(--kraft);}
+  .bulk-day-fields{display:flex;flex-direction:column;gap:8px;}
+  .bulk-day-block{background:var(--bg-card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+  .bulk-day-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;color:var(--text-dim);margin-bottom:6px;}
+  .bulk-day-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .bulk-day-hint{color:var(--text-faint);font-size:12px;font-style:italic;}
+  .bulk-warning{color:var(--over);font-size:12px;line-height:1.5;display:block;}
+
+  .sync-box{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:18px;}
+  .sync-header{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .sync-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;color:var(--text-dim);}
+  .sync-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .sync-toggle:hover{color:var(--text);border-color:var(--text-dim);}
+  .sync-panel{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+  .sync-desc{font-size:11.5px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;}
+  .sync-desc b{color:var(--text);}
+  .sync-fields{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .sync-fields input{width:100%;background:var(--bg-card-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:6px 9px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px 12px;}
+  .stat-card .pct{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;}
+  .stat-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+  .stat-card .sub{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+  .stat-card.lauf .pct{color:var(--lauf);}
+  .stat-card.kraft .pct{color:var(--kraft);}
+  .stat-card.sauna .pct{color:var(--sauna);}
+  .stat-card.gesamt .pct{color:var(--text);}
+  .bar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden;}
+  .bar div{height:100%;}
+  .stat-card.lauf .bar div{background:var(--lauf);}
+  .stat-card.kraft .bar div{background:var(--kraft);}
+  .stat-card.sauna .bar div{background:var(--sauna);}
+  .stat-card.gesamt .bar div{background:var(--text);}
+
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;margin:26px 0 10px;color:var(--text-dim);}
+  .spotlight{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .spotlight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+
+  .week-pct-grid{display:flex;flex-wrap:wrap;gap:6px;}
+  .week-pct{width:64px;padding:7px 4px;border-radius:7px;border:1px solid var(--line);text-align:center;}
+  .week-pct .wn{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text-faint);}
+  .week-pct .wp{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--text);}
+  .week-pct.iscurrent{outline:1px solid var(--text-dim);}
+
+  footer{margin-top:30px;color:var(--text-faint);font-size:11px;text-align:center;}
+
+  @media (max-width:700px){
+    .week-grid{grid-template-columns:1fr;}
+    .week-grid.sauna-grid{grid-template-columns:1fr;}
+    .week-num-wrap{flex-direction:row;justify-content:space-between;padding-top:0;padding-bottom:4px;}
+    .field-label{display:block;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .spotlight-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <p class="eyebrow" id="loadStatus">Lade Trainingsdaten …</p>
+    <h1>Trainingsplan</h1>
+    <div class="daterange">Juli 2026 – Juni 2027</div>
+    <div class="lap-track" id="lapTrack">
+      <div class="lane lane-lauf" id="laneLauf"></div>
+      <div class="lane lane-kraft" id="laneKraft"></div>
+      <div class="lane lane-sauna" id="laneSauna"></div>
+      <div class="week-marker" id="weekMarker"></div>
+    </div>
+    <div class="lap-labels" id="lapLabels"></div>
+  </header>
+
+  <div class="sync-box">
+    <div class="sync-header">
+      <span class="sync-title">Geräte-Sync über GitHub Gist</span>
+      <button class="sync-toggle" id="syncToggle">Einstellungen</button>
+    </div>
+    <div class="sync-panel" id="syncPanel" style="display:none;">
+      <div class="sync-desc">
+        Optional: synchronisiere deine Daten geräteübergreifend über einen privaten GitHub Gist. Personal Access Token und Gist-ID werden nur lokal in <b>diesem</b> Browser gespeichert (localStorage), niemals sonst wohin übertragen außer an die GitHub API.
+        Ist noch keine Gist-ID hinterlegt, wird beim ersten Hochladen automatisch ein neuer (geheimer) Gist erstellt.
+      </div>
+      <div class="sync-fields">
+        <div class="unit-field" style="flex:1 1 220px;">
+          <span class="date-input-label">Personal Access Token</span>
+          <input type="password" id="syncTokenInput" placeholder="ghp_...">
+        </div>
+        <div class="unit-field" style="flex:1 1 220px;">
+          <span class="date-input-label">Gist-ID (optional)</span>
+          <input type="text" id="syncGistInput" placeholder="wird automatisch erstellt">
+        </div>
+      </div>
+      <div class="bulk-actions">
+        <button class="bulk-apply" id="syncPushBtn">↑ Hochladen</button>
+        <button class="bulk-cancel" id="syncPullBtn">↓ Herunterladen</button>
+      </div>
+      <div class="bulk-status" id="syncStatus"></div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn" data-tab="lauf">Ausdauertraining</button>
+    <button class="tab-btn" data-tab="kraft">Krafttraining</button>
+    <button class="tab-btn" data-tab="sauna">Sauna</button>
+    <button class="tab-btn" data-tab="uebersicht">Übersicht</button>
+  </nav>
+
+  <section class="panel" id="panel-lauf">
+    <div class="legend">
+      <b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br>
+      Jede Einheit ist frei editierbar: Datum, Ziel-km und gelaufene km anpassen — <span style="color:var(--under)">rot</span> = weniger als geplant, <span style="color:var(--over)">gelb</span> = geplant erreicht oder übertroffen. Mit "+ Einheit" kannst du weitere Läufe hinzufügen, mit ✕ entfernen.
+    </div>
+    <div class="upload-box">
+      <div class="upload-title">Excel-Upload</div>
+      <div class="upload-desc">
+        Datei mit den Spalten <b>Datum</b>, <b>Ziel</b> (km) und <b>Notiz</b> hochladen (.xlsx, .xls oder .csv, erste Zeile = Überschriften).<br>
+        Für jede Woche, die in der Datei vorkommt: Einheiten mit <b>gleichem Datum</b> werden aktualisiert (Ziel-km & Notiz, "Gelaufen"-Werte bleiben erhalten), neue Daten werden hinzugefügt. <span style="color:var(--over)">Alle anderen Einheiten dieser Wochen werden entfernt</span> — nur was in der Datei steht, bleibt übrig. Wochen ohne Eintrag in der Datei bleiben komplett unverändert.<br>
+        Liegt ein Datum nach der letzten vorhandenen Woche, werden automatisch neue Wochen angelegt (wie bei "+ Wochen einfügen").
+      </div>
+      <div class="upload-desc" style="margin-top:6px;">
+        <b>Datumsformat:</b> nutze in Excel ein eindeutiges Jahr (z. B. 21.07.2026 statt 21.07.26) — bei zweistelligen Jahreszahlen kann Excel das falsche Jahrzehnt einsetzen.
+      </div>
+      <input type="file" id="laufExcelInput" accept=".xlsx,.xls,.csv">
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+    <div class="bulk-box">
+      <div class="bulk-triggers">
+        <button class="bulk-trigger" data-cat="lauf" data-mode="insert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="lauf" data-mode="update">+ Wochen aktualisieren</button>
+      </div>
+      <div class="bulk-form" data-cat="lauf" style="display:none;"></div>
+    </div>
+    <div id="laufList"></div>
+  </section>
+
+  <section class="panel" id="panel-kraft">
+    <div class="legend">Standard: Dienstag Rücken/Bizeps/Bauch, Freitag Brust/Schulter/Trizeps/Beine — Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
+    <div class="bulk-box">
+      <div class="bulk-triggers">
+        <button class="bulk-trigger" data-cat="kraft" data-mode="insert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="kraft" data-mode="update">+ Wochen aktualisieren</button>
+      </div>
+      <div class="bulk-form" data-cat="kraft" style="display:none;"></div>
+    </div>
+    <div id="kraftList"></div>
+  </section>
+
+  <section class="panel" id="panel-sauna">
+    <div class="legend">Standard: Dienstag, Freitag, Sonntag. Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.</div>
+    <div class="bulk-box">
+      <div class="bulk-triggers">
+        <button class="bulk-trigger" data-cat="sauna" data-mode="insert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="sauna" data-mode="update">+ Wochen aktualisieren</button>
+      </div>
+      <div class="bulk-form" data-cat="sauna" style="display:none;"></div>
+    </div>
+    <div id="saunaList"></div>
+  </section>
+
+  <section class="panel" id="panel-uebersicht">
+    <div class="scope-row">
+      <span class="date-input-label" style="width:auto;">Zeitraum</span>
+      <select id="statScope"></select>
+    </div>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="section-title">Diese Woche</div>
+    <div class="spotlight" id="spotlight"></div>
+    <div class="section-title">Wochenfortschritt in %</div>
+    <div class="week-pct-grid" id="weekPctGrid"></div>
+  </section>
+
+  <footer>Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.</footer>
+</div>
+
+<script>
+// ---------------- Real marathon data (18.03. – 11.10.2026) ----------------
+const marathonWeeks = [
+ {mi:"2026-03-18",miKm:6,miPlan:"6 km 50 %",so:"2026-03-22",soKm:10,soTempo:"45–50 %"},
+ {mi:"2026-03-25",miKm:6,miPlan:"4 km 50 % + 2 km 55 %",so:"2026-03-29",soKm:12,soTempo:"45–50 %"},
+ {mi:"2026-04-01",miKm:7,miPlan:"7 km 50 %",so:"2026-04-05",soKm:14,soTempo:"45–50 %"},
+ {mi:"2026-04-08",miKm:6,miPlan:"2 km 50 % + 2 km 60 % + 2 km 50 %",so:"2026-04-12",soKm:16,soTempo:"45 %"},
+ {mi:"2026-04-15",miKm:6,miPlan:"6 km 45–50 %",so:"2026-04-19",soKm:12,soTempo:"45 %"},
+ {mi:"2026-04-22",miKm:7,miPlan:"3 km 50 % + 2 km 60 % + 2 km 50 %",so:"2026-04-26",soKm:18,soTempo:"45–50 %"},
+ {mi:"2026-04-29",miKm:7,miPlan:"7 km 50 %",so:"2026-05-03",soKm:20,soTempo:"45 %"},
+ {mi:"2026-05-06",miKm:8,miPlan:"2 km 50 % + 3 km 60–65 % + 3 km 50 %",so:"2026-05-10",soKm:21,soTempo:"45–50 %"},
+ {mi:"2026-05-13",miKm:6,miPlan:"6 km 50 %",so:"2026-05-17",soKm:16,soTempo:"45 %"},
+ {mi:"2026-05-20",miKm:8,miPlan:"3 km 50 % + 3 km 60 % + 2 km 50 %",so:"2026-05-24",soKm:24,soTempo:"45–50 %"},
+ {mi:"2026-05-27",miKm:8,miPlan:"8 km 50 %",so:"2026-05-31",soKm:26,soTempo:"45 %"},
+ {mi:"2026-06-03",miKm:7,miPlan:"7 km 45–50 %",so:"2026-06-07",soKm:18,soTempo:"45 %"},
+ {mi:"2026-06-10",miKm:9,miPlan:"3 km 50 % + 3 km 60 % + 3 km 50 %",so:"2026-06-14",soKm:28,soTempo:"45–50 %"},
+ {mi:"2026-06-17",miKm:7,miPlan:"7 km 50 %",so:"2026-06-21",soKm:20,soTempo:"45 %"},
+ {mi:"2026-06-24",miKm:9,miPlan:"2 km 50 % + 4 km 60–65 % + 3 km 50 %",so:"2026-06-28",soKm:30,soTempo:"45 %"},
+ {mi:"2026-07-01",miKm:8,miPlan:"8 km 50 %",so:"2026-07-05",soKm:22,soTempo:"45–50 %"},
+ {mi:"2026-07-08",miKm:9,miPlan:"3 km 50 % + 3 km 60 % + 3 km 50 %",so:"2026-07-12",soKm:24,soTempo:"45–50 %"},
+ {mi:"2026-07-15",miKm:9,miPlan:"9 km 50 %",so:"2026-07-19",soKm:26,soTempo:"45 %"},
+ {mi:"2026-07-22",miKm:7,miPlan:"7 km 45–50 %",so:"2026-07-26",soKm:20,soTempo:"45 %"},
+ {mi:"2026-07-29",miKm:9,miPlan:"3 km 50 % + 4 km 60 % + 2 km 50 %",so:"2026-08-02",soKm:28,soTempo:"45–50 %"},
+ {mi:"2026-08-05",miKm:9,miPlan:"9 km 50 %",so:"2026-08-09",soKm:30,soTempo:"45 %"},
+ {mi:"2026-08-12",miKm:8,miPlan:"2 km 50 % + 3 km 60 % + 3 km 50 %",so:"2026-08-16",soKm:22,soTempo:"45–50 %"},
+ {mi:"2026-08-19",miKm:10,miPlan:"3 km 50 % + 4 km 60 % + 3 km 50 %",so:"2026-08-23",soKm:32,soTempo:"45 %"},
+ {mi:"2026-08-26",miKm:8,miPlan:"8 km 50 %",so:"2026-08-30",soKm:24,soTempo:"45–50 %"},
+ {mi:"2026-09-02",miKm:9,miPlan:"2 km 50 % + 4 km 60 % + 3 km 50 %",so:"2026-09-06",soKm:28,soTempo:"45 %"},
+ {mi:"2026-09-09",miKm:9,miPlan:"9 km 50 %",so:"2026-09-13",soKm:30,soTempo:"45 %"},
+ {mi:"2026-09-16",miKm:7,miPlan:"7 km 50 %",so:"2026-09-20",soKm:22,soTempo:"45 %"},
+ {mi:"2026-09-23",miKm:6,miPlan:"6 km 50 %",so:"2026-09-27",soKm:16,soTempo:"45 %"},
+ {mi:"2026-09-30",miKm:5,miPlan:"5 km 45–50 %",so:"2026-10-04",soKm:10,soTempo:"45 %"},
+ {mi:"2026-10-07",miKm:4,miPlan:"4 km 45 %",so:"2026-10-11",soKm:42.2,soTempo:"Start 50 %, später 55–60 %"}
+];
+
+function addDays(iso,d){const dt=new Date(iso+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+d);return dt.toISOString().slice(0,10);}
+function fmt(iso){const [y,m,d]=iso.split("-");return `${d}.${m}.${y}`;}
+function fmtKm(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1});}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+
+// ---------------- Build full-year week list ----------------
+const ANCHOR = marathonWeeks[0].mi;
+const LAST_MARATHON_MI = marathonWeeks[marathonWeeks.length-1].mi;
+
+const WINDOW_START = "2026-07-01";
+let WINDOW_END = "2027-06-30";
+function generateMiDates(){
+  const dates=[];
+  let d = ANCHOR;
+  while(d >= WINDOW_START){ dates.unshift(d); d = addDays(d,-7); }
+  d = addDays(ANCHOR,7);
+  while(d <= WINDOW_END){ if(d >= WINDOW_START) dates.push(d); d = addDays(d,7); }
+  return dates;
+}
+
+function buildWeeks(){
+  return generateMiDates().map((mi,idx)=>{
+    const so = addDays(mi,4);
+    const found = marathonWeeks.find(m=>m.mi===mi);
+    let base;
+    if(found){
+      base = {miKm:found.miKm,miPlan:found.miPlan,soKm:found.soKm,soTempo:found.soTempo,phase:'Aufbau'};
+    } else if(mi < ANCHOR){
+      base = {miKm:5,miPlan:"5 km 50 % (Grundlage)",soKm:8,soTempo:"45–50 %",phase:'Grundlage'};
+    } else {
+      const daysSince = (new Date(mi+"T00:00:00Z") - new Date(LAST_MARATHON_MI+"T00:00:00Z"))/86400000;
+      if(daysSince <= 14){
+        base = {miKm:3,miPlan:"3 km 45 % (Erholung)",soKm:5,soTempo:"45 % (locker)",phase:'Erholung'};
+      } else {
+        base = {miKm:6,miPlan:"6 km 50 % (Erhaltung)",soKm:10,soTempo:"45–50 %",phase:'Erhaltung'};
+      }
+    }
+    return Object.assign({w:idx+1, mi, so, mo:addDays(mi,-2), di:addDays(mi,-1), fr:addDays(mi,2)}, base);
+  });
+}
+let weeks = buildWeeks();
+
+const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+function formatMonthYear(iso){ const [y,m] = iso.split('-'); return `${MONTHS_DE[parseInt(m,10)-1]} ${y}`; }
+function updateDateRangeLabel(){
+  document.querySelector('.daterange').textContent = `${formatMonthYear(WINDOW_START)} – ${formatMonthYear(WINDOW_END)}`;
+}
+
+// ---------------- State (flexible per-week units) ----------------
+let state = { units: { lauf:{}, kraft:{}, sauna:{} } };
+const STORAGE_KEY = "trainingsplan-2026-state-v3";
+
+function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function oldFlatEntry(cat,key){ return (state[cat] && state[cat][key]) ? state[cat][key] : null; }
+
+function ensureUnits(){
+  if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
+  ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  let changed = false;
+  weeks.forEach(wk=>{
+    if(!state.units.lauf[wk.w]){
+      const oMi = oldFlatEntry('lauf', wk.w+'-mi');
+      const oSo = oldFlatEntry('lauf', wk.w+'-so');
+      state.units.lauf[wk.w] = [
+        {id:'d-mi', date:wk.mi, planKm:wk.miKm, note:wk.miPlan, actualKm:(oMi&&oMi.km)||'', doneDate:(oMi&&oMi.date)||''},
+        {id:'d-so', date:wk.so, planKm:wk.soKm, note:'Tempo '+wk.soTempo, actualKm:(oSo&&oSo.km)||'', doneDate:(oSo&&oSo.date)||''}
+      ];
+      changed = true;
+    }
+    if(!state.units.kraft[wk.w]){
+      const oDi = oldFlatEntry('kraft', wk.w+'-di');
+      const oFr = oldFlatEntry('kraft', wk.w+'-fr');
+      state.units.kraft[wk.w] = [
+        {id:'d-di', date:wk.di, note:'Rücken · Bizeps · Bauch', done:!!(oDi&&oDi.done), doneDate:(oDi&&oDi.date)||''},
+        {id:'d-fr', date:wk.fr, note:'Brust · Schulter · Trizeps · Beine', done:!!(oFr&&oFr.done), doneDate:(oFr&&oFr.date)||''}
+      ];
+      changed = true;
+    }
+    if(!state.units.sauna[wk.w]){
+      const oDi = oldFlatEntry('sauna', wk.w+'-di');
+      const oFr = oldFlatEntry('sauna', wk.w+'-fr');
+      const oSo = oldFlatEntry('sauna', wk.w+'-so');
+      state.units.sauna[wk.w] = [
+        {id:'d-di', date:wk.di, gaenge:(oDi&&oDi.gaenge)||1, doneDate:(oDi&&oDi.date)||''},
+        {id:'d-fr', date:wk.fr, gaenge:(oFr&&oFr.gaenge)||1, doneDate:(oFr&&oFr.date)||''},
+        {id:'d-so', date:wk.so, gaenge:(oSo&&oSo.gaenge)||1, doneDate:(oSo&&oSo.date)||''}
+      ];
+      changed = true;
+    }
+    ['lauf','kraft','sauna'].forEach(cat=>{
+      const oExtra = oldFlatEntry(cat, wk.w+'-extra');
+      if(oExtra && oExtra.desc){
+        const arr = state.units[cat][wk.w];
+        if(!arr.some(u=>u.id==='migrated-extra')){
+          const extraUnit = cat==='lauf'
+            ? {id:'migrated-extra', date:oExtra.date||wk.mi, planKm:'', actualKm:'', note:oExtra.desc}
+            : cat==='kraft'
+              ? {id:'migrated-extra', date:oExtra.date||wk.di, note:oExtra.desc, done:true, doneDate:oExtra.date||''}
+              : {id:'migrated-extra', date:oExtra.date||wk.di, gaenge:'', doneDate:oExtra.date||'', note:oExtra.desc};
+          arr.push(extraUnit);
+          changed = true;
+        }
+      }
+    });
+  });
+  weeks.forEach(wk=>{
+    (state.units.sauna[wk.w]||[]).forEach(u=>{
+      if(u.id.startsWith('d-') && (u.gaenge==='' || u.gaenge===undefined || u.gaenge===null)){
+        u.gaenge = 1; changed = true;
+      }
+    });
+  });
+  if(changed){ delete state.lauf; delete state.kraft; delete state.sauna; }
+  return changed;
+}
+
+function isUnitDone(cat, u){
+  if(cat==='lauf') return u.actualKm !== '' && u.actualKm !== undefined && u.actualKm !== null && !isNaN(parseFloat(u.actualKm));
+  if(cat==='sauna') return u.gaenge !== '' && u.gaenge !== undefined && u.gaenge !== null && parseInt(u.gaenge,10) > 0;
+  return !!u.done;
+}
+
+// Rebuilds state.units by each unit's own `date` field rather than trusting the
+// week-number key it happens to be stored under. This is self-healing: regardless
+// of how a previous bug (missing WINDOW_START filter, or a bad migration pass)
+// scrambled which week-number a unit's array lived under, every unit still carries
+// its real date, so it gets placed back under the week whose Di–So range contains it.
+function rebuildUnitsFromDates(){
+  let changed = false;
+  ['lauf','kraft','sauna'].forEach(cat=>{
+    const all = [];
+    Object.values(state.units[cat] || {}).forEach(arr=>{ (arr||[]).forEach(u=>all.push(u)); });
+    const byWeek = {};
+    weeks.forEach(wk=>{ byWeek[wk.w] = []; });
+    all.forEach(u=>{
+      const wk = weeks.find(w => u.date >= w.mo && u.date <= w.so);
+      if(wk) byWeek[wk.w].push(u);
+      else changed = true; // date falls outside the current window entirely — drop it, it never should have existed here
+    });
+    weeks.forEach(wk=>{
+      const seen = new Set();
+      byWeek[wk.w] = byWeek[wk.w].filter(u=>{
+        if(seen.has(u.id)) return false;
+        seen.add(u.id); return true;
+      });
+    });
+    const prevKeys = Object.keys(state.units[cat] || {});
+    const newKeys = Object.keys(byWeek);
+    if(prevKeys.length !== newKeys.length || prevKeys.some(k=>!byWeek[k])) changed = true;
+    state.units[cat] = byWeek;
+  });
+  return changed;
+}
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ state = JSON.parse(raw); }
+    else{
+      const old = localStorage.getItem("trainingsplan-2026-state-v2");
+      if(old){ state = JSON.parse(old); }
+    }
+  }catch(e){ /* no previous data, or storage unavailable */ }
+  if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
+  ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
+
+  let didFix = false;
+  if(state.dataRebuildVersion !== 2){
+    didFix = rebuildUnitsFromDates();
+    state.dataRebuildVersion = 2;
+  }
+
+  const materialized = ensureUnits();
+  if(didFix || materialized) saveState();
+  updateDateRangeLabel();
+  document.getElementById("loadStatus").textContent = "Trainingsplan · " + weeks.length + " Wochen";
+  renderAll();
+}
+function saveState(){
+  state.windowEnd = WINDOW_END;
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error("Speichern fehlgeschlagen", e); }
+}
+
+// ---------------- GitHub Gist sync (cross-device) ----------------
+const SYNC_TOKEN_KEY = 'trainingsplan-sync-token';
+const SYNC_GIST_KEY = 'trainingsplan-sync-gistid';
+const GIST_FILENAME = 'trainingsplan-data.json';
+
+function getSyncToken(){ try{ return localStorage.getItem(SYNC_TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function getSyncGistId(){ try{ return localStorage.getItem(SYNC_GIST_KEY) || ''; }catch(e){ return ''; } }
+function setSyncToken(v){ try{ localStorage.setItem(SYNC_TOKEN_KEY, v); }catch(e){} }
+function setSyncGistId(v){ try{ localStorage.setItem(SYNC_GIST_KEY, v); }catch(e){} }
+
+function refreshSyncFields(){
+  const t = document.getElementById('syncTokenInput');
+  const g = document.getElementById('syncGistInput');
+  if(t) t.value = getSyncToken();
+  if(g) g.value = getSyncGistId();
+}
+function setSyncStatus(msg, isError){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'bulk-status' + (isError ? ' error' : ' ok');
+}
+
+async function pushToGist(){
+  const token = getSyncToken();
+  if(!token){ setSyncStatus('Bitte zuerst einen Personal Access Token eintragen.', true); return; }
+  setSyncStatus('Lade hoch …', false);
+  const content = JSON.stringify(state, null, 2);
+  const gistId = getSyncGistId();
+  try{
+    let res;
+    if(gistId){
+      res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method:'PATCH',
+        headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github+json' },
+        body: JSON.stringify({ files: { [GIST_FILENAME]: { content } } })
+      });
+    } else {
+      res = await fetch('https://api.github.com/gists', {
+        method:'POST',
+        headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github+json' },
+        body: JSON.stringify({ description:'Trainingsplan Daten (automatisch erstellt)', public:false, files:{ [GIST_FILENAME]: { content } } })
+      });
+    }
+    if(!res.ok){ throw new Error('HTTP ' + res.status + ' — Token/Berechtigung (Scope "gist") prüfen'); }
+    const data = await res.json();
+    if(!gistId){ setSyncGistId(data.id); refreshSyncFields(); }
+    setSyncStatus('Erfolgreich hochgeladen · ' + new Date().toLocaleTimeString('de-DE'), false);
+  }catch(e){
+    setSyncStatus('Fehler beim Hochladen: ' + e.message, true);
+  }
+}
+async function pullFromGist(silent){
+  const token = getSyncToken();
+  const gistId = getSyncGistId();
+  if(!token || !gistId){
+    if(!silent) setSyncStatus('Bitte Token und Gist-ID eintragen (oder zuerst einmal hochladen).', true);
+    return;
+  }
+  if(!silent) setSyncStatus('Lade herunter …', false);
+  try{
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github+json' }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const file = data.files && data.files[GIST_FILENAME];
+    if(!file) throw new Error('Datei nicht im Gist gefunden');
+    const content = file.truncated ? await (await fetch(file.raw_url)).text() : file.content;
+    const parsed = JSON.parse(content);
+    state = parsed;
+    if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
+    ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+    if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
+    ensureUnits();
+    saveState();
+    buildStatScopeOptions();
+    updateDateRangeLabel();
+    renderAll();
+    setSyncStatus('Erfolgreich geladen · ' + new Date().toLocaleTimeString('de-DE'), false);
+  }catch(e){
+    if(!silent) setSyncStatus('Fehler beim Laden: ' + e.message, true);
+  }
+}
+
+function updateUnit(cat,week,id,patch){
+  const arr = state.units[cat][week];
+  if(!arr) return;
+  const u = arr.find(x=>x.id===id);
+  if(!u) return;
+  Object.assign(u,patch);
+  saveState(); renderAll();
+}
+function addUnit(cat,week){
+  const wk = weeks.find(w=>String(w.w)===String(week));
+  if(!wk) return;
+  const id = uid();
+  let newUnit;
+  if(cat==='lauf') newUnit = {id, date:wk.mi, planKm:'', actualKm:'', note:''};
+  else if(cat==='kraft') newUnit = {id, date:wk.di, note:'', done:false, doneDate:''};
+  else newUnit = {id, date:wk.di, gaenge:'', doneDate:''};
+  state.units[cat][week].push(newUnit);
+  saveState(); renderAll();
+}
+function removeUnit(cat,week,id){
+  const arr = state.units[cat][week];
+  if(!arr) return;
+  const idx = arr.findIndex(u=>u.id===id);
+  if(idx>=0) arr.splice(idx,1);
+  saveState(); renderAll();
+}
+function toggleUnitDone(cat,week,id){
+  const arr = state.units[cat][week];
+  const u = arr && arr.find(x=>x.id===id);
+  if(!u) return;
+  u.done = !u.done;
+  if(u.done && !u.doneDate) u.doneDate = todayISO();
+  saveState(); renderAll();
+}
+
+// ---------------- Excel upload (Lauftraining) ----------------
+function findWeekForDate(dateIso){
+  return weeks.find(wk => dateIso >= wk.mo && dateIso <= wk.so);
+}
+function parseUploadDate(val){
+  if(val instanceof Date && !isNaN(val)){
+    return new Date(Date.UTC(val.getFullYear(), val.getMonth(), val.getDate())).toISOString().slice(0,10);
+  }
+  if(typeof val === 'number'){
+    const d = XLSX.SSF.parse_date_code(val);
+    if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  if(typeof val === 'string'){
+    let m = val.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+    if(m){ const y = m[3].length===2 ? '20'+m[3] : m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+    m = val.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  }
+  return null;
+}
+function parseUploadKm(val){
+  if(typeof val === 'number') return val;
+  if(typeof val === 'string'){
+    const cleaned = val.replace(/[^0-9,.-]/g,'').replace(',', '.');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? '' : n;
+  }
+  return '';
+}
+function setUploadStatus(msg, cls){
+  const el = document.getElementById('uploadStatus');
+  el.textContent = msg;
+  el.className = 'upload-status' + (cls ? ' '+cls : '');
+}
+async function handleLaufUpload(file){
+  setUploadStatus('Lese Datei …', '');
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+  if(!rows.length){ setUploadStatus('Keine Zeilen gefunden.', 'error'); return; }
+
+  const parsedRows = rows.map(row=>{
+    const keys = Object.keys(row);
+    const dKey = keys.find(k=>k.toLowerCase().includes('datum'));
+    const zKey = keys.find(k=>k.toLowerCase().includes('ziel'));
+    const nKey = keys.find(k=>k.toLowerCase().includes('notiz'));
+    return {
+      dateIso: dKey ? parseUploadDate(row[dKey]) : null,
+      planKm: zKey ? parseUploadKm(row[zKey]) : '',
+      note: nKey ? String(row[nKey]||'') : ''
+    };
+  });
+  const badDates = parsedRows.filter(r=>!r.dateIso).length;
+  const validDates = parsedRows.map(r=>r.dateIso).filter(Boolean);
+
+  // Auto-extend the calendar (like "Wochen einfügen") if the file reaches beyond the current last week
+  let addedWeeks = 0;
+  if(validDates.length){
+    const maxDate = validDates.reduce((a,b)=> a>b?a:b);
+    const lastWeek = weeks[weeks.length-1];
+    if(maxDate > lastWeek.so){
+      const prevLen = weeks.length;
+      while(WINDOW_END < maxDate){ WINDOW_END = addDays(WINDOW_END, 7); }
+      weeks = buildWeeks();
+      ensureUnits();
+      buildStatScopeOptions();
+      updateDateRangeLabel();
+      addedWeeks = weeks.length - prevLen;
+    }
+  }
+
+  const byWeek = {};
+  let outOfRange = 0;
+  parsedRows.forEach(r=>{
+    if(!r.dateIso) return;
+    const wk = findWeekForDate(r.dateIso);
+    if(!wk){ outOfRange++; return; } // still out of range, e.g. before WINDOW_START
+    if(!byWeek[wk.w]) byWeek[wk.w] = [];
+    byWeek[wk.w].push({id:uid(), date:r.dateIso, planKm:r.planKm, actualKm:'', doneDate:'', note:r.note});
+  });
+
+  const weekNumbers = Object.keys(byWeek);
+  if(!weekNumbers.length){
+    let msg = 'Keine gültigen Zeilen.';
+    if(outOfRange) msg = `Alle ${outOfRange} Zeile(n) liegen vor dem Startdatum des Plans (${formatMonthYear(WINDOW_START)}) — Datum in Excel prüfen.`;
+    else if(badDates) msg = `${badDates} Zeile(n) hatten kein lesbares Datum — bitte Spalte "Datum" prüfen.`;
+    setUploadStatus(msg, 'error');
+    return;
+  }
+  const skipped = badDates + outOfRange;
+  let updated = 0, added = 0, removed = 0;
+  weekNumbers.forEach(w=>{
+    const existing = state.units.lauf[w] || [];
+    const newArr = [];
+    let matchedCount = 0;
+    byWeek[w].forEach(row=>{
+      const match = existing.find(u => u.date === row.date);
+      if(match){
+        match.planKm = row.planKm;
+        match.note = row.note;
+        newArr.push(match);
+        updated++; matchedCount++;
+      } else {
+        newArr.push({id:uid(), date:row.date, planKm:row.planKm, actualKm:'', doneDate:'', note:row.note});
+        added++;
+      }
+    });
+    removed += existing.length - matchedCount;
+    state.units.lauf[w] = newArr;
+  });
+  saveState();
+  renderAll();
+  setUploadStatus(`${weekNumbers.length} Woche(n) betroffen${addedWeeks?` (davon ${addedWeeks} neu angelegt)`:''} · ${updated} Einheit(en) aktualisiert · ${added} neu hinzugefügt · ${removed} entfernt${skipped?` · ${skipped} Zeile(n) übersprungen`:''}.`, 'ok');
+}
+
+// ---------------- Current week ----------------
+function getCurrentWeekIndex(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i=0;i<weeks.length;i++){
+    const so = new Date(weeks[i].so+"T00:00:00");
+    if(today <= so) return i;
+  }
+  return weeks.length-1;
+}
+
+// ---------------- Unit row renderers ----------------
+function esc(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+function laufUnitRow(wk,u){
+  const target = parseFloat(u.planKm);
+  let statusClass = '';
+  if(u.actualKm !== '' && u.actualKm !== undefined && u.actualKm !== null && !isNaN(target)){
+    statusClass = parseFloat(u.actualKm) < target ? 'status-under' : 'status-over';
+  }
+  return `<div class="unit-row ${statusClass}" data-cat="lauf" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">Ziel (km)</span><input type="number" step="0.1" class="u-plankm" value="${u.planKm||''}" placeholder="km"></div>
+    <div class="unit-field"><span class="date-input-label">Gelaufen (km)</span><input type="number" step="0.1" class="u-actualkm" value="${u.actualKm||''}" placeholder="km"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">Notiz</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="z. B. Tempo, Intervalle"></div>
+    <button class="u-remove" title="Einheit entfernen">✕</button>
+  </div>`;
+}
+function kraftUnitRow(wk,u){
+  return `<div class="unit-row" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">Übung / Fokus</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="z. B. Beine"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?'Erledigt':'Erledigt?'}</button></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="Einheit entfernen">✕</button>
+  </div>`;
+}
+function saunaUnitRow(wk,u){
+  return `<div class="unit-row" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt (Gänge)</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">Notiz</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="optional"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="Einheit entfernen">✕</button>
+  </div>`;
+}
+
+function renderCategory(cat, currentIdx, rowFn){
+  return weeks.map((wk,i)=>{
+    const units = state.units[cat][wk.w] || [];
+    const sorted = units.slice().sort((a,b)=> (a.date||'').localeCompare(b.date||''));
+    return `<div class="week-card ${i===currentIdx?'current':''}">
+      <div class="week-card-head">
+        <div class="week-num">${wk.w}</div>
+        ${cat==='lauf'?`<div class="phase-tag">${wk.phase}</div>`:''}
+        <button class="u-add" data-cat="${cat}" data-week="${wk.w}">+ Einheit</button>
+      </div>
+      <div class="unit-list">${sorted.length ? sorted.map(u=>rowFn(wk,u)).join('') : '<div class="empty-hint">Keine Einheiten diese Woche</div>'}</div>
+    </div>`;
+  }).join('');
+}
+function renderLauf(currentIdx){ return renderCategory('lauf', currentIdx, laufUnitRow); }
+function renderKraft(currentIdx){ return renderCategory('kraft', currentIdx, kraftUnitRow); }
+function renderSauna(currentIdx){ return renderCategory('sauna', currentIdx, saunaUnitRow); }
+
+// ---------------- Stats ----------------
+let statScope = null; // 'all' or a week number string
+function buildStatScopeOptions(){
+  const sel = document.getElementById('statScope');
+  sel.innerHTML = `<option value="all">Gesamt (alle Wochen)</option>` +
+    weeks.map(wk=>`<option value="${wk.w}">Woche ${wk.w} · ${fmt(wk.mi)}–${fmt(wk.so)}</option>`).join('');
+}
+function countDone(cat){
+  let done=0, total=0;
+  weeks.forEach(wk=>{
+    (state.units[cat][wk.w]||[]).forEach(u=>{ total++; if(isUnitDone(cat,u)) done++; });
+  });
+  return {done,total};
+}
+function countForWeek(cat,weekNum){
+  const units = state.units[cat][weekNum]||[];
+  return {done: units.filter(u=>isUnitDone(cat,u)).length, total: units.length};
+}
+function renderStats(){
+  const sel = document.getElementById('statScope');
+  if(sel.value !== statScope) sel.value = statScope;
+  const scoped = statScope==='all' ? cat=>countDone(cat) : cat=>countForWeek(cat,statScope);
+  const lauf = scoped('lauf');
+  const kraft = scoped('kraft');
+  const sauna = scoped('sauna');
+  const totalDone = lauf.done+kraft.done+sauna.done;
+  const totalAll = lauf.total+kraft.total+sauna.total;
+  const pct = (d,t)=> t? Math.round(d/t*100):0;
+  const cards = [
+    {cls:'lauf', label:'Ausdauertraining', d:lauf.done, t:lauf.total},
+    {cls:'kraft', label:'Krafttraining', d:kraft.done, t:kraft.total},
+    {cls:'sauna', label:'Sauna', d:sauna.done, t:sauna.total},
+    {cls:'gesamt', label:'Gesamt', d:totalDone, t:totalAll},
+  ];
+  document.getElementById('statGrid').innerHTML = cards.map(c=>`
+    <div class="stat-card ${c.cls}">
+      <div class="pct">${pct(c.d,c.t)}%</div>
+      <div class="label">${c.label}</div>
+      <div class="sub">${c.d} / ${c.t} Einheiten</div>
+      <div class="bar"><div style="width:${pct(c.d,c.t)}%"></div></div>
+    </div>`).join('');
+}
+function renderSpotlight(currentIdx){
+  const wk = weeks[currentIdx];
+  const items = [];
+  (state.units.lauf[wk.w]||[]).forEach(u=>items.push({cat:'lauf',u}));
+  (state.units.kraft[wk.w]||[]).forEach(u=>items.push({cat:'kraft',u}));
+  (state.units.sauna[wk.w]||[]).forEach(u=>items.push({cat:'sauna',u}));
+  items.sort((a,b)=>(a.u.date||'').localeCompare(b.u.date||''));
+  document.getElementById('spotlight').innerHTML =
+    `<div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">Woche ${wk.w} (${wk.phase}) · ${fmt(wk.mo)} – ${fmt(wk.so)} · Einheiten bearbeiten geht auch direkt im jeweiligen Reiter</div>
+     <div class="unit-list">` +
+    items.map(it=>{
+      if(it.cat==='lauf') return laufUnitRow(wk,it.u);
+      if(it.cat==='kraft') return kraftUnitRow(wk,it.u);
+      return saunaUnitRow(wk,it.u);
+    }).join('') + `</div>`;
+}
+function renderLapTrack(currentIdx){
+  const frac = cat => weeks.map(wk=>{
+    const units = state.units[cat][wk.w]||[];
+    if(!units.length) return 0;
+    return units.filter(u=>isUnitDone(cat,u)).length / units.length;
+  });
+  const laufFrac = frac('lauf'), kraftFrac = frac('kraft'), saunaFrac = frac('sauna');
+  const cls = f => f>=1 ? 'full' : (f>0 ? 'partial' : '');
+  document.getElementById('laneLauf').innerHTML = laufFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
+  document.getElementById('laneKraft').innerHTML = kraftFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
+  document.getElementById('laneSauna').innerHTML = saunaFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
+  document.getElementById('weekMarker').style.left = ((currentIdx+0.5)/weeks.length*100)+'%';
+  document.getElementById('lapLabels').innerHTML = `<span>1</span><span>${Math.round(weeks.length/2)}</span><span>${weeks.length}</span>`;
+}
+function renderWeekPct(currentIdx){
+  document.getElementById('weekPctGrid').innerHTML = weeks.map((wk,i)=>{
+    const all = [
+      ...(state.units.lauf[wk.w]||[]).map(u=>['lauf',u]),
+      ...(state.units.kraft[wk.w]||[]).map(u=>['kraft',u]),
+      ...(state.units.sauna[wk.w]||[]).map(u=>['sauna',u])
+    ];
+    const done = all.filter(([cat,u])=>isUnitDone(cat,u)).length;
+    const pct = all.length ? Math.round(done/all.length*100) : 0;
+    const bg = `rgba(236,232,222,${(pct/100*0.35+0.04).toFixed(2)})`;
+    return `<div class="week-pct ${i===currentIdx?'iscurrent':''}" style="background:${bg}">
+      <div class="wn">W${wk.w}</div><div class="wp">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+function renderAll(){
+  const currentIdx = getCurrentWeekIndex();
+  if(statScope===null) statScope = String(weeks[currentIdx].w);
+  document.getElementById('laufList').innerHTML = renderLauf(currentIdx);
+  document.getElementById('kraftList').innerHTML = renderKraft(currentIdx);
+  document.getElementById('saunaList').innerHTML = renderSauna(currentIdx);
+  renderStats();
+  renderSpotlight(currentIdx);
+  renderLapTrack(currentIdx);
+  renderWeekPct(currentIdx);
+}
+
+// ---------------- Bulk Insert / Update (weekday-based, multiple weeks) ----------------
+const WEEKDAY_OFFSETS = {Mo:-2, Di:-1, Mi:0, Do:1, Fr:2, Sa:3, So:4};
+
+function bulkFieldHtml(label, type, cls, attrs){
+  const attrStr = Object.entries(attrs||{}).map(([k,v])=>`${k}="${v}"`).join(' ');
+  return `<div class="unit-field"><span class="date-input-label">${label}</span><input type="${type}" class="${cls}" ${attrStr}></div>`;
+}
+function bulkWeekdayCheckboxesHtml(){
+  return `<div class="unit-field" style="flex:1 1 100%;"><span class="date-input-label">Wochentage</span>
+    <div class="bulk-weekdays">` + Object.keys(WEEKDAY_OFFSETS).map(d=>`<label class="wd-check"><input type="checkbox" class="bulk-wd" value="${d}"> ${d}</label>`).join('') + `</div></div>`;
+}
+function bulkDayBlockHtml(cat, mode, day, saved){
+  saved = saved || {};
+  let fields = '';
+  if(cat==='lauf'){
+    fields = bulkFieldHtml('Ziel (km)','number',`bulk-zielkm-${day}`,{step:'0.1',placeholder:'km',value:esc(saved.zielkm)}) +
+             bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+  } else if(cat==='kraft'){
+    fields = bulkFieldHtml('Übung / Fokus','text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
+  } else {
+    fields = bulkFieldHtml('Gänge','number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
+    if(mode==='update') fields += bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+  }
+  return `<div class="bulk-day-block" data-day="${day}"><div class="bulk-day-label">${day}</div><div class="bulk-day-row">${fields}</div></div>`;
+}
+function bulkDayFieldsHtml(cat, mode, days, savedByDay){
+  if(!days.length) return `<div class="bulk-day-hint">Bitte oben mindestens einen Wochentag auswählen.</div>`;
+  return days.map(day=>bulkDayBlockHtml(cat, mode, day, (savedByDay||{})[day])).join('');
+}
+function captureBulkDayValues(cat, formEl){
+  const stored = {};
+  formEl.querySelectorAll('.bulk-day-block').forEach(block=>{
+    const day = block.dataset.day;
+    if(cat==='lauf'){
+      stored[day] = {
+        zielkm: (formEl.querySelector(`.bulk-zielkm-${day}`)||{}).value || '',
+        notiz: (formEl.querySelector(`.bulk-notiz-${day}`)||{}).value || ''
+      };
+    } else if(cat==='kraft'){
+      stored[day] = { fokus: (formEl.querySelector(`.bulk-fokus-${day}`)||{}).value || '' };
+    } else {
+      stored[day] = {
+        gaenge: (formEl.querySelector(`.bulk-gaenge-${day}`)||{}).value || '',
+        notiz: (formEl.querySelector(`.bulk-notiz-${day}`)||{}).value || ''
+      };
+    }
+  });
+  return stored;
+}
+function buildBulkForm(cat, mode){
+  let html = `<div class="bulk-form-inner">`;
+  if(mode==='update'){
+    html += `<div class="unit-field" style="flex:1 1 100%;"><span class="bulk-warning">Achtung: In den gewählten Wochen bleiben nur die hier ausgewählten Wochentage bestehen — alle anderen Einheiten dieser Wochen werden entfernt.</span></div>`;
+    html += `<div class="unit-field"><span class="date-input-label">Ab Woche</span><select class="bulk-startweek">` +
+      weeks.map(wk=>`<option value="${wk.w}">Woche ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
+    html += bulkFieldHtml('Anzahl Wochen','number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
+  } else {
+    html += bulkFieldHtml('Anzahl neuer Wochen','number','bulk-count',{min:'1',value:'52',style:'width:70px;'});
+  }
+  html += bulkWeekdayCheckboxesHtml();
+  html += `<div class="bulk-day-fields" style="flex:1 1 100%;">${bulkDayFieldsHtml(cat, mode, [])}</div>`;
+  html += `<div class="bulk-actions">
+      <button class="bulk-apply" data-cat="${cat}" data-mode="${mode}">Übernehmen</button>
+      <button class="bulk-cancel" data-cat="${cat}">Abbrechen</button>
+    </div>
+    <div class="bulk-status" data-cat="${cat}"></div>
+  </div>`;
+  return html;
+}
+function getSelectedWeekdays(formEl){
+  return Array.from(formEl.querySelectorAll('.bulk-wd:checked')).map(cb=>cb.value);
+}
+function readBulkContentForDay(cat, formEl, day){
+  if(cat==='lauf'){
+    const zielEl = formEl.querySelector(`.bulk-zielkm-${day}`);
+    const notizEl = formEl.querySelector(`.bulk-notiz-${day}`);
+    const zielRaw = zielEl ? zielEl.value : '';
+    return {zielKm: zielRaw===''?'':parseFloat(zielRaw.replace(',','.')), notiz: notizEl?notizEl.value:''};
+  }
+  if(cat==='kraft'){
+    const fokusEl = formEl.querySelector(`.bulk-fokus-${day}`);
+    return {fokus: fokusEl?fokusEl.value:''};
+  }
+  const gaengeEl = formEl.querySelector(`.bulk-gaenge-${day}`);
+  const notizEl = formEl.querySelector(`.bulk-notiz-${day}`);
+  const gaengeRaw = gaengeEl ? gaengeEl.value : '';
+  return {gaenge: gaengeRaw===''?1:parseInt(gaengeRaw,10), notiz: notizEl ? notizEl.value : ''};
+}
+function buildBulkUnit(cat, date, content){
+  if(cat==='lauf') return {id:uid(), date, planKm:content.zielKm, actualKm:'', doneDate:'', note:content.notiz||''};
+  if(cat==='kraft') return {id:uid(), date, note:content.fokus||'', done:false, doneDate:''};
+  return {id:uid(), date, gaenge:content.gaenge, doneDate:'', note:content.notiz||''};
+}
+function applyBulkContentToUnit(cat, unit, content){
+  if(cat==='lauf'){ unit.planKm = content.zielKm; unit.note = content.notiz||''; }
+  else if(cat==='kraft'){ unit.note = content.fokus||''; }
+  else { unit.gaenge = content.gaenge; if(content.notiz!==undefined) unit.note = content.notiz||''; }
+}
+function showBulkStatus(formEl, msg, isError){
+  const el = formEl.querySelector('.bulk-status');
+  el.textContent = msg;
+  el.className = 'bulk-status' + (isError ? ' error' : ' ok');
+}
+
+function applyBulkInsert(cat, formEl){
+  const count = parseInt(formEl.querySelector('.bulk-count').value, 10);
+  if(!count || count < 1){ showBulkStatus(formEl,'Bitte eine gültige Anzahl Wochen angeben.', true); return; }
+  const wds = getSelectedWeekdays(formEl);
+  if(!wds.length){ showBulkStatus(formEl,'Bitte mindestens einen Wochentag wählen.', true); return; }
+  const contentByDay = {};
+  wds.forEach(wd=>{ contentByDay[wd] = readBulkContentForDay(cat, formEl, wd); });
+
+  const prevLen = weeks.length;
+  WINDOW_END = addDays(WINDOW_END, count*7);
+  weeks = buildWeeks();
+  ensureUnits();
+
+  const newWeeks = weeks.slice(prevLen);
+  newWeeks.forEach(wk=>{
+    state.units[cat][wk.w] = [];
+    wds.forEach(wd=>{
+      const date = addDays(wk.mi, WEEKDAY_OFFSETS[wd]);
+      state.units[cat][wk.w].push(buildBulkUnit(cat, date, contentByDay[wd]));
+    });
+  });
+  saveState();
+  buildStatScopeOptions();
+  updateDateRangeLabel();
+  renderAll();
+  showBulkStatus(formEl, `${newWeeks.length} neue Woche(n) hinzugefügt (Woche ${prevLen+1}–${weeks.length}) · ${wds.length} Einheit(en) pro Woche befüllt.`, false);
+}
+function applyBulkUpdate(cat, formEl){
+  const startWeek = parseInt(formEl.querySelector('.bulk-startweek').value, 10);
+  const count = parseInt(formEl.querySelector('.bulk-count').value, 10);
+  if(!count || count < 1){ showBulkStatus(formEl,'Bitte eine gültige Anzahl Wochen angeben.', true); return; }
+  const wds = getSelectedWeekdays(formEl);
+  if(!wds.length){ showBulkStatus(formEl,'Bitte mindestens einen Wochentag wählen.', true); return; }
+  const contentByDay = {};
+  wds.forEach(wd=>{ contentByDay[wd] = readBulkContentForDay(cat, formEl, wd); });
+
+  const targetWeeks = weeks.filter(wk=>wk.w >= startWeek).slice(0, count);
+  if(!targetWeeks.length){ showBulkStatus(formEl,'Keine passenden Wochen gefunden.', true); return; }
+
+  let updated=0, added=0, removed=0;
+  targetWeeks.forEach(wk=>{
+    const existing = state.units[cat][wk.w] || [];
+    const newArr = [];
+    let matchedCount = 0;
+    wds.forEach(wd=>{
+      const date = addDays(wk.mi, WEEKDAY_OFFSETS[wd]);
+      const match = existing.find(u=>u.date===date);
+      if(match){ applyBulkContentToUnit(cat, match, contentByDay[wd]); newArr.push(match); updated++; matchedCount++; }
+      else { newArr.push(buildBulkUnit(cat, date, contentByDay[wd])); added++; }
+    });
+    removed += existing.length - matchedCount;
+    state.units[cat][wk.w] = newArr;
+  });
+  saveState();
+  renderAll();
+  showBulkStatus(formEl, `${targetWeeks.length} Woche(n) verarbeitet · ${updated} Einheit(en) aktualisiert · ${added} neu hinzugefügt · ${removed} entfernt.`, false);
+}
+
+// ---------------- Events ----------------
+document.getElementById('app').addEventListener('click', e=>{
+  const addBtn = e.target.closest('.u-add');
+  if(addBtn){ addUnit(addBtn.dataset.cat, addBtn.dataset.week); return; }
+  const removeBtn = e.target.closest('.u-remove');
+  if(removeBtn){
+    const row = removeBtn.closest('.unit-row');
+    removeUnit(row.dataset.cat, row.dataset.week, row.dataset.id);
+    return;
+  }
+  const toggleBtn = e.target.closest('.u-toggle');
+  if(toggleBtn){
+    const row = toggleBtn.closest('.unit-row');
+    toggleUnitDone(row.dataset.cat, row.dataset.week, row.dataset.id);
+    return;
+  }
+  const bulkTrigger = e.target.closest('.bulk-trigger');
+  if(bulkTrigger){
+    const cat = bulkTrigger.dataset.cat, mode = bulkTrigger.dataset.mode;
+    const formEl = document.querySelector(`.bulk-form[data-cat="${cat}"]`);
+    formEl.innerHTML = buildBulkForm(cat, mode);
+    formEl.style.display = 'block';
+    return;
+  }
+  const bulkCancel = e.target.closest('.bulk-cancel');
+  if(bulkCancel){
+    const formEl = document.querySelector(`.bulk-form[data-cat="${bulkCancel.dataset.cat}"]`);
+    formEl.style.display = 'none';
+    formEl.innerHTML = '';
+    return;
+  }
+  const bulkApply = e.target.closest('.bulk-apply');
+  if(bulkApply){
+    const cat = bulkApply.dataset.cat, mode = bulkApply.dataset.mode;
+    const formEl = bulkApply.closest('.bulk-form');
+    if(mode==='insert') applyBulkInsert(cat, formEl); else applyBulkUpdate(cat, formEl);
+    return;
+  }
+  const tab = e.target.closest('.tab-btn');
+  if(tab){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  }
+});
+document.getElementById('app').addEventListener('change', e=>{
+  if(e.target.classList.contains('bulk-wd')){
+    const formEl = e.target.closest('.bulk-form');
+    const cat = formEl.dataset.cat;
+    const applyBtn = formEl.querySelector('.bulk-apply');
+    const mode = applyBtn ? applyBtn.dataset.mode : 'insert';
+    const saved = captureBulkDayValues(cat, formEl);
+    const days = getSelectedWeekdays(formEl);
+    formEl.querySelector('.bulk-day-fields').innerHTML = bulkDayFieldsHtml(cat, mode, days, saved);
+    return;
+  }
+  const row = e.target.closest('.unit-row');
+  if(!row) return;
+  const cat = row.dataset.cat, week = row.dataset.week, id = row.dataset.id;
+  const val = e.target.value;
+  if(e.target.classList.contains('u-date')) updateUnit(cat,week,id,{date:val});
+  else if(e.target.classList.contains('u-plankm')) updateUnit(cat,week,id,{planKm:val});
+  else if(e.target.classList.contains('u-actualkm')){
+    const arr = state.units[cat][week]; const u = arr && arr.find(x=>x.id===id);
+    const patch = {actualKm:val};
+    if(u && val!=='' && !isNaN(parseFloat(val)) && !u.doneDate) patch.doneDate = todayISO();
+    updateUnit(cat,week,id,patch);
+  }
+  else if(e.target.classList.contains('u-note')) updateUnit(cat,week,id,{note:val});
+  else if(e.target.classList.contains('u-gaenge')){
+    const arr = state.units[cat][week]; const u = arr && arr.find(x=>x.id===id);
+    const patch = {gaenge:val};
+    if(u && val!=='' && parseInt(val,10)>0 && !u.doneDate) patch.doneDate = todayISO();
+    updateUnit(cat,week,id,patch);
+  }
+  else if(e.target.classList.contains('u-donedate')) updateUnit(cat,week,id,{doneDate:val});
+});
+
+document.querySelector('.tab-btn[data-tab="lauf"]').classList.add('active');
+document.getElementById('panel-lauf').classList.add('active');
+
+buildStatScopeOptions();
+document.getElementById('statScope').addEventListener('change', e=>{
+  statScope = e.target.value;
+  renderStats();
+});
+
+document.getElementById('laufExcelInput').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{ await handleLaufUpload(file); }
+  catch(err){ setUploadStatus('Fehler beim Einlesen: ' + err.message, 'error'); }
+  e.target.value = '';
+});
+
+refreshSyncFields();
+document.getElementById('syncToggle').addEventListener('click', ()=>{
+  const panel = document.getElementById('syncPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('syncTokenInput').addEventListener('change', e=>setSyncToken(e.target.value.trim()));
+document.getElementById('syncGistInput').addEventListener('change', e=>setSyncGistId(e.target.value.trim()));
+document.getElementById('syncPushBtn').addEventListener('click', pushToGist);
+document.getElementById('syncPullBtn').addEventListener('click', ()=>pullFromGist(false));
+
+loadState();
+if(getSyncToken() && getSyncGistId()){ pullFromGist(true); }
+</script>
+</body>
+</html>
