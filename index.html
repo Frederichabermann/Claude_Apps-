@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trainingsplan 2026</title>
+<title>Training Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -21,11 +21,30 @@
     --lauf-dim:rgba(214,90,49,.16);
     --kraft:#3e8c77;
     --kraft-dim:rgba(62,140,119,.16);
+    --flex:#8c7ae0;
+    --flex-dim:rgba(140,122,224,.16);
     --sauna:#e0a526;
     --sauna-dim:rgba(224,165,38,.16);
     --under:#d6453a;
     --over:#e0a526;
+    --done:#8fd6a0;
   }
+  body.light-theme{
+    --bg:#f4f2ec;
+    --bg-card:#ffffff;
+    --bg-card-2:#f0ede4;
+    --line:#ddd7c9;
+    --text:#20221f;
+    --text-dim:#5b5f5a;
+    --text-faint:#8b8f88;
+  }
+  body{transition:background-color .15s;}
+  .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .theme-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+  .theme-toggle:hover{color:var(--text);border-color:var(--text-dim);}
+
+  .hero-icons{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;}
+  .hero-icon svg{width:46px;height:46px;display:block;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
@@ -46,6 +65,8 @@
   .lane-lauf div.partial{background:var(--lauf-dim);}
   .lane-kraft div.full{background:var(--kraft);}
   .lane-kraft div.partial{background:var(--kraft-dim);}
+  .lane-flex div.full{background:var(--flex);}
+  .lane-flex div.partial{background:var(--flex-dim);}
   .lane-sauna div.full{background:var(--sauna);}
   .lane-sauna div.partial{background:var(--sauna-dim);}
   .week-marker{position:absolute;top:-9px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text);transform:translateX(-50%);}
@@ -57,6 +78,7 @@
   .tab-btn.active{color:var(--bg);}
   .tab-btn[data-tab="lauf"].active{background:var(--lauf);border-color:var(--lauf);}
   .tab-btn[data-tab="kraft"].active{background:var(--kraft);border-color:var(--kraft);}
+  .tab-btn[data-tab="flex"].active{background:var(--flex);border-color:var(--flex);}
   .tab-btn[data-tab="sauna"].active{background:var(--sauna);border-color:var(--sauna);}
   .tab-btn[data-tab="uebersicht"].active{background:var(--text);border-color:var(--text);}
 
@@ -85,7 +107,7 @@
   .unit-list{display:flex;flex-direction:column;gap:8px;}
   .unit-row{background:var(--bg-card-2);border-radius:8px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid transparent;}
   .unit-row.status-under{background:rgba(214,69,58,.14);border-color:rgba(214,69,58,.45);}
-  .unit-row.status-over{background:rgba(224,165,38,.14);border-color:rgba(224,165,38,.5);}
+  .unit-row.status-over{background:rgba(143,214,160,.16);border-color:rgba(143,214,160,.5);}
   .unit-field{display:flex;flex-direction:column;gap:2px;}
   .unit-field input[type=date], .unit-field input[type=number], .unit-field input[type=text]{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:5px 7px;}
   .unit-field input[type=number]{width:70px;}
@@ -114,6 +136,8 @@
   .check-btn::before{content:'';width:15px;height:15px;border-radius:4px;border:1.5px solid var(--text-faint);flex:none;}
   .kraft .check-btn.done{color:var(--kraft);}
   .kraft .check-btn.done::before{background:var(--kraft);border-color:var(--kraft);}
+  .flex .check-btn.done{color:var(--flex);}
+  .flex .check-btn.done::before{background:var(--flex);border-color:var(--flex);}
   .sauna .check-btn.done{color:var(--sauna);}
   .sauna .check-btn.done::before{background:var(--sauna);border-color:var(--sauna);}
 
@@ -162,19 +186,21 @@
   .sync-fields{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
   .sync-fields input{width:100%;background:var(--bg-card-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:6px 9px;}
 
-  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px;}
   .stat-card{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px 12px;}
   .stat-card .pct{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;}
   .stat-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
   .stat-card .sub{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:'JetBrains Mono',monospace;}
   .stat-card.lauf .pct{color:var(--lauf);}
   .stat-card.kraft .pct{color:var(--kraft);}
+  .stat-card.flex .pct{color:var(--flex);}
   .stat-card.sauna .pct{color:var(--sauna);}
   .stat-card.gesamt .pct{color:var(--text);}
   .bar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden;}
   .bar div{height:100%;}
   .stat-card.lauf .bar div{background:var(--lauf);}
   .stat-card.kraft .bar div{background:var(--kraft);}
+  .stat-card.flex .bar div{background:var(--flex);}
   .stat-card.sauna .bar div{background:var(--sauna);}
   .stat-card.gesamt .bar div{background:var(--text);}
 
@@ -187,6 +213,16 @@
   .week-pct .wn{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text-faint);}
   .week-pct .wp{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--text);}
   .week-pct.iscurrent{outline:1px solid var(--text-dim);}
+
+  .year-chart-block{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .year-chart-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.03em;color:var(--text-dim);margin-bottom:8px;}
+  .chart-legend{display:flex;gap:16px;align-items:center;font-size:11.5px;color:var(--text-dim);margin-bottom:8px;}
+  .legend-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle;}
+  .year-chart-svg{width:100%;height:auto;display:block;}
+  .chart-month{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--text-faint);}
+  .chart-val{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
+  .chart-total{font-size:12px;color:var(--text-dim);margin-bottom:10px;}
+  .chart-total b{font-weight:700;}
 
   footer{margin-top:30px;color:var(--text-faint);font-size:11px;text-align:center;}
 
@@ -203,12 +239,76 @@
 <body>
 <div id="app">
   <header>
-    <p class="eyebrow" id="loadStatus">Lade Trainingsdaten …</p>
-    <h1>Trainingsplan</h1>
+    <div class="header-top">
+      <p class="eyebrow" id="loadStatus">Lade Trainingsdaten …</p>
+      <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
+    </div>
+    <h1>Training Log</h1>
     <div class="daterange">Juli 2026 – Juni 2027</div>
+
+    <div class="hero-icons">
+      <div class="hero-icon" style="color:var(--lauf)">
+        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="40" cy="10" r="6"></circle>
+          <path d="M36 8 L44 8" stroke-width="3"></path>
+          <path d="M36 16 L27 28 L14 32" fill="none"></path>
+          <path d="M36 16 L43 25 L54 20"></path>
+          <path d="M27 28 L32 40 L24 54"></path>
+          <path d="M27 28 L18 38 L22 52"></path>
+          <path d="M24 54 L18 58 M24 54 L30 58"></path>
+          <path d="M22 52 L16 54 M22 52 L26 56"></path>
+          <path d="M2 46 Q8 42 14 46" opacity=".45"></path>
+          <path d="M0 54 Q6 50 12 54" opacity=".3"></path>
+        </g></svg>
+      </div>
+      <div class="hero-icon" style="color:var(--kraft)">
+        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="10" r="6"></circle>
+          <path d="M32 16 L32 34"></path>
+          <path d="M20 44 L26 34 L38 34 L44 44"></path>
+          <path d="M20 44 L17 56 M44 44 L47 56"></path>
+          <path d="M14 12 L50 12"></path>
+          <path d="M32 18 L14 12 M32 18 L50 12"></path>
+          <circle cx="8" cy="12" r="7"></circle>
+          <circle cx="8" cy="12" r="3" opacity=".5"></circle>
+          <circle cx="56" cy="12" r="7"></circle>
+          <circle cx="56" cy="12" r="3" opacity=".5"></circle>
+          <path d="M46 6 L50 2 M48 8 L52 5" opacity=".4"></path>
+        </g></svg>
+      </div>
+      <div class="hero-icon" style="color:var(--sauna)">
+        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="12" r="6"></circle>
+          <path d="M20 56 L23 26 Q32 32 41 26 L44 56 Z"></path>
+          <path d="M28 26 L32 34 L36 26" opacity=".6"></path>
+          <path d="M23 40 L41 40" opacity=".5"></path>
+          <path d="M14 50 L20 50 M44 50 L50 50" opacity=".5"></path>
+          <path d="M25 6 C 23 2, 27 2, 25 -2" opacity=".55"></path>
+          <path d="M32 4 C 30 0, 34 0, 32 -4" opacity=".55"></path>
+          <path d="M39 6 C 37 2, 41 2, 39 -2" opacity=".55"></path>
+          <path d="M14 58 L50 58" opacity=".3"></path>
+        </g></svg>
+      </div>
+      <div class="hero-icon" style="color:var(--flex)">
+        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="30" cy="12" r="6"></circle>
+          <path d="M30 18 L26 30"></path>
+          <path d="M26 30 L16 42"></path>
+          <path d="M26 30 L38 40"></path>
+          <path d="M30 18 L48 10"></path>
+          <path d="M48 10 L60 2" opacity=".55"></path>
+          <path d="M12 44 L22 40 L28 44"></path>
+          <path d="M34 42 L44 38 L50 42"></path>
+          <path d="M2 56 Q10 50 18 55 T34 54 T50 55 T62 50" opacity=".45"></path>
+          <path d="M4 50 Q10 46 16 50" opacity=".3"></path>
+        </g></svg>
+      </div>
+    </div>
+
     <div class="lap-track" id="lapTrack">
       <div class="lane lane-lauf" id="laneLauf"></div>
       <div class="lane lane-kraft" id="laneKraft"></div>
+      <div class="lane lane-flex" id="laneFlex"></div>
       <div class="lane lane-sauna" id="laneSauna"></div>
       <div class="week-marker" id="weekMarker"></div>
     </div>
@@ -248,6 +348,7 @@
   <nav class="tabs">
     <button class="tab-btn" data-tab="lauf">Ausdauertraining</button>
     <button class="tab-btn" data-tab="kraft">Krafttraining</button>
+    <button class="tab-btn" data-tab="flex">Flexibles Training</button>
     <button class="tab-btn" data-tab="sauna">Sauna</button>
     <button class="tab-btn" data-tab="uebersicht">Übersicht</button>
   </nav>
@@ -255,7 +356,7 @@
   <section class="panel" id="panel-lauf">
     <div class="legend">
       <b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br>
-      Jede Einheit ist frei editierbar: Datum, Ziel-km und gelaufene km anpassen — <span style="color:var(--under)">rot</span> = weniger als geplant, <span style="color:var(--over)">gelb</span> = geplant erreicht oder übertroffen. Mit "+ Einheit" kannst du weitere Läufe hinzufügen, mit ✕ entfernen.
+      <span style="color:var(--under)">Rot</span> = weniger als geplant, <span style="color:var(--done)">grün</span> = geplant erreicht oder übertroffen.
     </div>
     <div class="upload-box">
       <div class="upload-title">Excel-Upload</div>
@@ -281,7 +382,7 @@
   </section>
 
   <section class="panel" id="panel-kraft">
-    <div class="legend">Standard: Dienstag Rücken/Bizeps/Bauch, Freitag Brust/Schulter/Trizeps/Beine — Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
+    <div class="legend">Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
         <button class="bulk-trigger" data-cat="kraft" data-mode="insert">+ Wochen einfügen</button>
@@ -292,8 +393,20 @@
     <div id="kraftList"></div>
   </section>
 
+  <section class="panel" id="panel-flex">
+    <div class="legend">Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
+    <div class="bulk-box">
+      <div class="bulk-triggers">
+        <button class="bulk-trigger" data-cat="flex" data-mode="insert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="flex" data-mode="update">+ Wochen aktualisieren</button>
+      </div>
+      <div class="bulk-form" data-cat="flex" style="display:none;"></div>
+    </div>
+    <div id="flexList"></div>
+  </section>
+
   <section class="panel" id="panel-sauna">
-    <div class="legend">Standard: Dienstag, Freitag, Sonntag. Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.</div>
+    <div class="legend">Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
         <button class="bulk-trigger" data-cat="sauna" data-mode="insert">+ Wochen einfügen</button>
@@ -312,6 +425,29 @@
     <div class="stat-grid" id="statGrid"></div>
     <div class="section-title">Diese Woche</div>
     <div class="spotlight" id="spotlight"></div>
+
+    <div class="section-title">Jahresübersicht</div>
+    <div class="scope-row">
+      <span class="date-input-label" style="width:auto;">Jahr</span>
+      <select id="yearSelect"></select>
+    </div>
+    <div class="year-chart-block">
+      <div class="year-chart-title">Ausdauertraining — Ziel (km) vs. Gelaufen (km)</div>
+      <div id="yearChartLauf"></div>
+    </div>
+    <div class="year-chart-block">
+      <div class="year-chart-title">Krafttraining — Geplant vs. Erledigt</div>
+      <div id="yearChartKraft"></div>
+    </div>
+    <div class="year-chart-block">
+      <div class="year-chart-title">Flexibles Training — Geplant vs. Erledigt</div>
+      <div id="yearChartFlex"></div>
+    </div>
+    <div class="year-chart-block">
+      <div class="year-chart-title">Sauna — Geplant vs. Erledigt</div>
+      <div id="yearChartSauna"></div>
+    </div>
+
     <div class="section-title">Wochenfortschritt in %</div>
     <div class="week-pct-grid" id="weekPctGrid"></div>
   </section>
@@ -403,15 +539,15 @@ function updateDateRangeLabel(){
 }
 
 // ---------------- State (flexible per-week units) ----------------
-let state = { units: { lauf:{}, kraft:{}, sauna:{} } };
+let state = { units: { lauf:{}, kraft:{}, flex:{}, sauna:{} } };
 const STORAGE_KEY = "trainingsplan-2026-state-v3";
 
 function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function oldFlatEntry(cat,key){ return (state[cat] && state[cat][key]) ? state[cat][key] : null; }
 
 function ensureUnits(){
-  if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
-  ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
+  ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
   let changed = false;
   weeks.forEach(wk=>{
     if(!state.units.lauf[wk.w]){
@@ -443,16 +579,19 @@ function ensureUnits(){
       ];
       changed = true;
     }
-    ['lauf','kraft','sauna'].forEach(cat=>{
+    if(!state.units.flex[wk.w]){
+      state.units.flex[wk.w] = [];
+    }
+    ['lauf','kraft','flex','sauna'].forEach(cat=>{
       const oExtra = oldFlatEntry(cat, wk.w+'-extra');
       if(oExtra && oExtra.desc){
         const arr = state.units[cat][wk.w];
         if(!arr.some(u=>u.id==='migrated-extra')){
           const extraUnit = cat==='lauf'
             ? {id:'migrated-extra', date:oExtra.date||wk.mi, planKm:'', actualKm:'', note:oExtra.desc}
-            : cat==='kraft'
-              ? {id:'migrated-extra', date:oExtra.date||wk.di, note:oExtra.desc, done:true, doneDate:oExtra.date||''}
-              : {id:'migrated-extra', date:oExtra.date||wk.di, gaenge:'', doneDate:oExtra.date||'', note:oExtra.desc};
+            : cat==='sauna'
+              ? {id:'migrated-extra', date:oExtra.date||wk.di, gaenge:'', doneDate:oExtra.date||'', note:oExtra.desc}
+              : {id:'migrated-extra', date:oExtra.date||wk.di, note:oExtra.desc, done:true, doneDate:oExtra.date||''};
           arr.push(extraUnit);
           changed = true;
         }
@@ -483,7 +622,7 @@ function isUnitDone(cat, u){
 // its real date, so it gets placed back under the week whose Di–So range contains it.
 function rebuildUnitsFromDates(){
   let changed = false;
-  ['lauf','kraft','sauna'].forEach(cat=>{
+  ['lauf','kraft','flex','sauna'].forEach(cat=>{
     const all = [];
     Object.values(state.units[cat] || {}).forEach(arr=>{ (arr||[]).forEach(u=>all.push(u)); });
     const byWeek = {};
@@ -517,8 +656,8 @@ async function loadState(){
       if(old){ state = JSON.parse(old); }
     }
   }catch(e){ /* no previous data, or storage unavailable */ }
-  if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
-  ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
+  ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
   if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
 
   let didFix = false;
@@ -630,8 +769,8 @@ async function pullFromGist(silent){
     }
 
     state = parsed;
-    if(!state.units) state.units = {lauf:{},kraft:{},sauna:{}};
-    ['lauf','kraft','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+    if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
+    ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
     if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
     ensureUnits();
     saveState();
@@ -658,7 +797,7 @@ function addUnit(cat,week){
   const id = uid();
   let newUnit;
   if(cat==='lauf') newUnit = {id, date:wk.mi, planKm:'', actualKm:'', note:''};
-  else if(cat==='kraft') newUnit = {id, date:wk.di, note:'', done:false, doneDate:''};
+  else if(cat==='kraft' || cat==='flex') newUnit = {id, date:wk.di, note:'', done:false, doneDate:''};
   else newUnit = {id, date:wk.di, gaenge:'', doneDate:''};
   state.units[cat][week].push(newUnit);
   saveState(); renderAll();
@@ -824,7 +963,7 @@ function laufUnitRow(wk,u){
   </div>`;
 }
 function kraftUnitRow(wk,u){
-  return `<div class="unit-row" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
+  return `<div class="unit-row ${isUnitDone('kraft',u)?'status-over':''}" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">Übung / Fokus</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="z. B. Beine"></div>
     <div class="unit-field"><span class="date-input-label">Erledigt</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?'Erledigt':'Erledigt?'}</button></div>
@@ -833,10 +972,20 @@ function kraftUnitRow(wk,u){
   </div>`;
 }
 function saunaUnitRow(wk,u){
-  return `<div class="unit-row" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
+  return `<div class="unit-row ${isUnitDone('sauna',u)?'status-over':''}" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field"><span class="date-input-label">Erledigt (Gänge)</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">Notiz</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="optional"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="Einheit entfernen">✕</button>
+  </div>`;
+}
+
+function flexUnitRow(wk,u){
+  return `<div class="unit-row flex ${isUnitDone('flex',u)?'status-over':''}" data-cat="flex" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">Training</span><input type="text" class="u-note" value="${esc(u.note)}" placeholder="z. B. Yoga, Schwimmen, Radfahren"></div>
+    <div class="unit-field"><span class="date-input-label">Erledigt</span><button class="check-btn u-toggle flex ${u.done?'done':''}">${u.done?'Erledigt':'Erledigt?'}</button></div>
     <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="Einheit entfernen">✕</button>
   </div>`;
@@ -858,6 +1007,7 @@ function renderCategory(cat, currentIdx, rowFn){
 }
 function renderLauf(currentIdx){ return renderCategory('lauf', currentIdx, laufUnitRow); }
 function renderKraft(currentIdx){ return renderCategory('kraft', currentIdx, kraftUnitRow); }
+function renderFlex(currentIdx){ return renderCategory('flex', currentIdx, flexUnitRow); }
 function renderSauna(currentIdx){ return renderCategory('sauna', currentIdx, saunaUnitRow); }
 
 // ---------------- Stats ----------------
@@ -884,13 +1034,15 @@ function renderStats(){
   const scoped = statScope==='all' ? cat=>countDone(cat) : cat=>countForWeek(cat,statScope);
   const lauf = scoped('lauf');
   const kraft = scoped('kraft');
+  const flex = scoped('flex');
   const sauna = scoped('sauna');
-  const totalDone = lauf.done+kraft.done+sauna.done;
-  const totalAll = lauf.total+kraft.total+sauna.total;
+  const totalDone = lauf.done+kraft.done+flex.done+sauna.done;
+  const totalAll = lauf.total+kraft.total+flex.total+sauna.total;
   const pct = (d,t)=> t? Math.round(d/t*100):0;
   const cards = [
     {cls:'lauf', label:'Ausdauertraining', d:lauf.done, t:lauf.total},
     {cls:'kraft', label:'Krafttraining', d:kraft.done, t:kraft.total},
+    {cls:'flex', label:'Flexibles Training', d:flex.done, t:flex.total},
     {cls:'sauna', label:'Sauna', d:sauna.done, t:sauna.total},
     {cls:'gesamt', label:'Gesamt', d:totalDone, t:totalAll},
   ];
@@ -902,21 +1054,22 @@ function renderStats(){
       <div class="bar"><div style="width:${pct(c.d,c.t)}%"></div></div>
     </div>`).join('');
 }
+const ALL_CATS = ['lauf','kraft','flex','sauna'];
+function unitRowFor(cat, wk, u){
+  if(cat==='lauf') return laufUnitRow(wk,u);
+  if(cat==='kraft') return kraftUnitRow(wk,u);
+  if(cat==='flex') return flexUnitRow(wk,u);
+  return saunaUnitRow(wk,u);
+}
 function renderSpotlight(currentIdx){
   const wk = weeks[currentIdx];
   const items = [];
-  (state.units.lauf[wk.w]||[]).forEach(u=>items.push({cat:'lauf',u}));
-  (state.units.kraft[wk.w]||[]).forEach(u=>items.push({cat:'kraft',u}));
-  (state.units.sauna[wk.w]||[]).forEach(u=>items.push({cat:'sauna',u}));
+  ALL_CATS.forEach(cat=>{ (state.units[cat][wk.w]||[]).forEach(u=>items.push({cat,u})); });
   items.sort((a,b)=>(a.u.date||'').localeCompare(b.u.date||''));
   document.getElementById('spotlight').innerHTML =
     `<div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">Woche ${wk.w} (${wk.phase}) · ${fmt(wk.mo)} – ${fmt(wk.so)} · Einheiten bearbeiten geht auch direkt im jeweiligen Reiter</div>
      <div class="unit-list">` +
-    items.map(it=>{
-      if(it.cat==='lauf') return laufUnitRow(wk,it.u);
-      if(it.cat==='kraft') return kraftUnitRow(wk,it.u);
-      return saunaUnitRow(wk,it.u);
-    }).join('') + `</div>`;
+    items.map(it=>unitRowFor(it.cat, wk, it.u)).join('') + `</div>`;
 }
 function renderLapTrack(currentIdx){
   const frac = cat => weeks.map(wk=>{
@@ -924,21 +1077,19 @@ function renderLapTrack(currentIdx){
     if(!units.length) return 0;
     return units.filter(u=>isUnitDone(cat,u)).length / units.length;
   });
-  const laufFrac = frac('lauf'), kraftFrac = frac('kraft'), saunaFrac = frac('sauna');
+  const laufFrac = frac('lauf'), kraftFrac = frac('kraft'), flexFrac = frac('flex'), saunaFrac = frac('sauna');
   const cls = f => f>=1 ? 'full' : (f>0 ? 'partial' : '');
   document.getElementById('laneLauf').innerHTML = laufFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('laneKraft').innerHTML = kraftFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
+  document.getElementById('laneFlex').innerHTML = flexFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('laneSauna').innerHTML = saunaFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('weekMarker').style.left = ((currentIdx+0.5)/weeks.length*100)+'%';
   document.getElementById('lapLabels').innerHTML = `<span>1</span><span>${Math.round(weeks.length/2)}</span><span>${weeks.length}</span>`;
 }
 function renderWeekPct(currentIdx){
   document.getElementById('weekPctGrid').innerHTML = weeks.map((wk,i)=>{
-    const all = [
-      ...(state.units.lauf[wk.w]||[]).map(u=>['lauf',u]),
-      ...(state.units.kraft[wk.w]||[]).map(u=>['kraft',u]),
-      ...(state.units.sauna[wk.w]||[]).map(u=>['sauna',u])
-    ];
+    const all = [];
+    ALL_CATS.forEach(cat=>{ (state.units[cat][wk.w]||[]).forEach(u=>all.push([cat,u])); });
     const done = all.filter(([cat,u])=>isUnitDone(cat,u)).length;
     const pct = all.length ? Math.round(done/all.length*100) : 0;
     const bg = `rgba(236,232,222,${(pct/100*0.35+0.04).toFixed(2)})`;
@@ -947,16 +1098,128 @@ function renderWeekPct(currentIdx){
     </div>`;
   }).join('');
 }
+// ---------------- Jahresübersicht (yearly bar charts) ----------------
+const MONTHS_SHORT_DE = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+function getYearsInPlan(){
+  const set = new Set();
+  ['lauf','kraft','flex','sauna'].forEach(cat=>{
+    Object.values(state.units[cat]||{}).forEach(arr=>(arr||[]).forEach(u=>{ if(u.date) set.add(u.date.slice(0,4)); }));
+  });
+  if(!set.size) set.add(String(new Date().getFullYear()));
+  return Array.from(set).sort();
+}
+function aggregateYearData(year){
+  const months = Array.from({length:12},()=>({planKm:0, actualKm:0, kraftPlan:0, kraftDone:0, flexPlan:0, flexDone:0, saunaPlan:0, saunaDone:0}));
+  Object.values(state.units.lauf||{}).forEach(arr=>(arr||[]).forEach(u=>{
+    if(!u.date || u.date.slice(0,4)!==year) return;
+    const m = parseInt(u.date.slice(5,7),10)-1;
+    months[m].planKm += parseFloat(u.planKm)||0;
+    if(isUnitDone('lauf',u)) months[m].actualKm += parseFloat(u.actualKm)||0;
+  }));
+  Object.values(state.units.kraft||{}).forEach(arr=>(arr||[]).forEach(u=>{
+    if(!u.date || u.date.slice(0,4)!==year) return;
+    const m = parseInt(u.date.slice(5,7),10)-1;
+    months[m].kraftPlan++;
+    if(isUnitDone('kraft',u)) months[m].kraftDone++;
+  }));
+  Object.values(state.units.flex||{}).forEach(arr=>(arr||[]).forEach(u=>{
+    if(!u.date || u.date.slice(0,4)!==year) return;
+    const m = parseInt(u.date.slice(5,7),10)-1;
+    months[m].flexPlan++;
+    if(isUnitDone('flex',u)) months[m].flexDone++;
+  }));
+  Object.values(state.units.sauna||{}).forEach(arr=>(arr||[]).forEach(u=>{
+    if(!u.date || u.date.slice(0,4)!==year) return;
+    const m = parseInt(u.date.slice(5,7),10)-1;
+    months[m].saunaPlan++;
+    if(isUnitDone('sauna',u)) months[m].saunaDone++;
+  }));
+  return months;
+}
+function svgBarChart(months, keyA, keyB, colorA, colorB, fmtFn){
+  const W=700, H=232, padL=6, padR=6, padT=22, padB=26;
+  const chartW = W-padL-padR, chartH = H-padT-padB;
+  const groupW = chartW/12;
+  const barW = groupW*0.32;
+  const gap = groupW*0.08;
+  const maxVal = Math.max(1, ...months.map(m=>Math.max(m[keyA], m[keyB])));
+  let bars = '';
+  months.forEach((m,i)=>{
+    const gx = padL + i*groupW;
+    const hA = (m[keyA]/maxVal)*chartH;
+    const hB = (m[keyB]/maxVal)*chartH;
+    const xA = gx + groupW/2 - gap/2 - barW;
+    const xB = gx + groupW/2 + gap/2;
+    const yA = padT+chartH-hA, yB = padT+chartH-hB;
+    bars += `<rect x="${xA.toFixed(1)}" y="${yA.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,hA).toFixed(1)}" rx="2" fill="${colorA}"></rect>`;
+    bars += `<rect x="${xB.toFixed(1)}" y="${yB.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,hB).toFixed(1)}" rx="2" fill="${colorB}"></rect>`;
+    if(m[keyA]>0) bars += `<text x="${(xA+barW/2).toFixed(1)}" y="${Math.max(10,yA-4).toFixed(1)}" text-anchor="middle" class="chart-val" fill="${colorA}">${fmtFn(m[keyA])}</text>`;
+    if(m[keyB]>0) bars += `<text x="${(xB+barW/2).toFixed(1)}" y="${Math.max(10,yB-4).toFixed(1)}" text-anchor="middle" class="chart-val" fill="${colorB}">${fmtFn(m[keyB])}</text>`;
+    bars += `<text x="${(gx+groupW/2).toFixed(1)}" y="${H-8}" text-anchor="middle" class="chart-month">${MONTHS_SHORT_DE[i]}</text>`;
+  });
+  bars += `<line x1="${padL}" y1="${(padT+chartH).toFixed(1)}" x2="${W-padR}" y2="${(padT+chartH).toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="year-chart-svg">${bars}</svg>`;
+}
+function chartLegend(colorA,labelA,colorB,labelB){
+  return `<div class="chart-legend">
+    <span><span class="legend-dot" style="background:${colorA}"></span>${labelA}</span>
+    <span><span class="legend-dot" style="background:${colorB}"></span>${labelB}</span>
+  </div>`;
+}
+function chartTotals(months, keyA, keyB, colorA, colorB, labelA, labelB, fmtFn){
+  const totalA = months.reduce((s,m)=>s+m[keyA],0);
+  const totalB = months.reduce((s,m)=>s+m[keyB],0);
+  return `<div class="chart-total">Jahressumme: <b style="color:${colorA}">${fmtFn(totalA)} ${labelA}</b> · <b style="color:${colorB}">${fmtFn(totalB)} ${labelB}</b></div>`;
+}
+function buildYearOptions(){
+  const sel = document.getElementById('yearSelect');
+  const years = getYearsInPlan();
+  const prevValue = sel.value;
+  sel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  const thisYear = String(new Date().getFullYear());
+  if(years.includes(prevValue)) sel.value = prevValue;
+  else if(years.includes(thisYear)) sel.value = thisYear;
+  else sel.value = years[years.length-1];
+}
+function renderYearCharts(){
+  const sel = document.getElementById('yearSelect');
+  if(!sel.value) return;
+  const months = aggregateYearData(sel.value);
+  const fmtKmVal = v => fmtKm(v);
+  const fmtCountVal = v => String(v);
+  document.getElementById('yearChartLauf').innerHTML =
+    chartLegend('var(--lauf)','Ziel (km)','var(--done)','Gelaufen (km)') +
+    chartTotals(months,'planKm','actualKm','var(--lauf)','var(--done)','km Ziel','km gelaufen',fmtKmVal) +
+    svgBarChart(months,'planKm','actualKm','var(--lauf)','var(--done)',fmtKmVal);
+  document.getElementById('yearChartKraft').innerHTML =
+    chartLegend('var(--kraft)','Geplant','var(--done)','Erledigt') +
+    chartTotals(months,'kraftPlan','kraftDone','var(--kraft)','var(--done)','geplant','erledigt',fmtCountVal) +
+    svgBarChart(months,'kraftPlan','kraftDone','var(--kraft)','var(--done)',fmtCountVal);
+  document.getElementById('yearChartFlex').innerHTML =
+    chartLegend('var(--flex)','Geplant','var(--done)','Erledigt') +
+    chartTotals(months,'flexPlan','flexDone','var(--flex)','var(--done)','geplant','erledigt',fmtCountVal) +
+    svgBarChart(months,'flexPlan','flexDone','var(--flex)','var(--done)',fmtCountVal);
+  document.getElementById('yearChartSauna').innerHTML =
+    chartLegend('var(--sauna)','Geplant','var(--done)','Erledigt') +
+    chartTotals(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)','geplant','erledigt',fmtCountVal) +
+    svgBarChart(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)',fmtCountVal);
+}
+
+
 function renderAll(){
   const currentIdx = getCurrentWeekIndex();
   if(statScope===null) statScope = String(weeks[currentIdx].w);
   document.getElementById('laufList').innerHTML = renderLauf(currentIdx);
   document.getElementById('kraftList').innerHTML = renderKraft(currentIdx);
+  document.getElementById('flexList').innerHTML = renderFlex(currentIdx);
   document.getElementById('saunaList').innerHTML = renderSauna(currentIdx);
   renderStats();
   renderSpotlight(currentIdx);
   renderLapTrack(currentIdx);
   renderWeekPct(currentIdx);
+  buildYearOptions();
+  renderYearCharts();
 }
 
 // ---------------- Bulk Insert / Update (weekday-based, multiple weeks) ----------------
@@ -978,6 +1241,8 @@ function bulkDayBlockHtml(cat, mode, day, saved){
              bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
   } else if(cat==='kraft'){
     fields = bulkFieldHtml('Übung / Fokus','text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
+  } else if(cat==='flex'){
+    fields = bulkFieldHtml('Training','text',`bulk-fokus-${day}`,{placeholder:'z. B. Yoga, Schwimmen',value:esc(saved.fokus)});
   } else {
     fields = bulkFieldHtml('Gänge','number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
     if(mode==='update') fields += bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
@@ -997,7 +1262,7 @@ function captureBulkDayValues(cat, formEl){
         zielkm: (formEl.querySelector(`.bulk-zielkm-${day}`)||{}).value || '',
         notiz: (formEl.querySelector(`.bulk-notiz-${day}`)||{}).value || ''
       };
-    } else if(cat==='kraft'){
+    } else if(cat==='kraft' || cat==='flex'){
       stored[day] = { fokus: (formEl.querySelector(`.bulk-fokus-${day}`)||{}).value || '' };
     } else {
       stored[day] = {
@@ -1038,7 +1303,7 @@ function readBulkContentForDay(cat, formEl, day){
     const zielRaw = zielEl ? zielEl.value : '';
     return {zielKm: zielRaw===''?'':parseFloat(zielRaw.replace(',','.')), notiz: notizEl?notizEl.value:''};
   }
-  if(cat==='kraft'){
+  if(cat==='kraft' || cat==='flex'){
     const fokusEl = formEl.querySelector(`.bulk-fokus-${day}`);
     return {fokus: fokusEl?fokusEl.value:''};
   }
@@ -1049,12 +1314,12 @@ function readBulkContentForDay(cat, formEl, day){
 }
 function buildBulkUnit(cat, date, content){
   if(cat==='lauf') return {id:uid(), date, planKm:content.zielKm, actualKm:'', doneDate:'', note:content.notiz||''};
-  if(cat==='kraft') return {id:uid(), date, note:content.fokus||'', done:false, doneDate:''};
+  if(cat==='kraft' || cat==='flex') return {id:uid(), date, note:content.fokus||'', done:false, doneDate:''};
   return {id:uid(), date, gaenge:content.gaenge, doneDate:'', note:content.notiz||''};
 }
 function applyBulkContentToUnit(cat, unit, content){
   if(cat==='lauf'){ unit.planKm = content.zielKm; unit.note = content.notiz||''; }
-  else if(cat==='kraft'){ unit.note = content.fokus||''; }
+  else if(cat==='kraft' || cat==='flex'){ unit.note = content.fokus||''; }
   else { unit.gaenge = content.gaenge; if(content.notiz!==undefined) unit.note = content.notiz||''; }
 }
 function showBulkStatus(formEl, msg, isError){
@@ -1208,6 +1473,7 @@ document.getElementById('statScope').addEventListener('change', e=>{
   statScope = e.target.value;
   renderStats();
 });
+document.getElementById('yearSelect').addEventListener('change', renderYearCharts);
 
 document.getElementById('laufExcelInput').addEventListener('change', async e=>{
   const file = e.target.files[0];
@@ -1226,6 +1492,20 @@ document.getElementById('syncTokenInput').addEventListener('change', e=>setSyncT
 document.getElementById('syncGistInput').addEventListener('change', e=>setSyncGistId(e.target.value.trim()));
 document.getElementById('syncPushBtn').addEventListener('click', pushToGist);
 document.getElementById('syncPullBtn').addEventListener('click', ()=>pullFromGist(false));
+
+function applyTheme(mode){
+  document.body.classList.toggle('light-theme', mode==='light');
+  document.getElementById('themeToggle').textContent = mode==='light' ? '🌙 Nachtmodus' : '☀️ Tagmodus';
+  try{ localStorage.setItem('trainingsplan-theme', mode); }catch(e){}
+}
+(function initTheme(){
+  let mode = 'dark';
+  try{ mode = localStorage.getItem('trainingsplan-theme') || 'dark'; }catch(e){}
+  applyTheme(mode);
+})();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  applyTheme(document.body.classList.contains('light-theme') ? 'dark' : 'light');
+});
 
 loadState();
 if(getSyncToken() && getSyncGistId()){
