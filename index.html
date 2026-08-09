@@ -41,17 +41,16 @@
   body{transition:background-color .15s;}
   .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .header-toggles{display:flex;gap:8px;align-items:center;}
-  .title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-  .header-image-box{position:relative;width:120px;height:88px;border:1px dashed var(--line);border-radius:10px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
+  .title-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .hero-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:14px;}
+  .header-image-box{position:relative;width:180px;height:140px;border:1px dashed var(--line);border-radius:12px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
   .header-image-box:hover{border-color:var(--text-dim);}
-  .header-image-placeholder{font-size:12px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
+  .header-image-placeholder{font-size:14px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
   .header-image-box img{width:100%;height:100%;object-fit:cover;display:block;}
-  .header-image-remove{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .header-image-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
   .theme-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
   .theme-toggle:hover{color:var(--text);border-color:var(--text-dim);}
 
-  .hero-icons{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;}
-  .hero-icon svg{width:46px;height:46px;display:block;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
@@ -80,7 +79,8 @@
   .lap-labels{display:flex;justify-content:space-between;color:var(--text-faint);font-size:10px;margin-top:4px;font-family:'JetBrains Mono',monospace;}
 
   nav.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-  .tab-btn{font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:16px;background:var(--bg-card);color:var(--text-dim);border:1px solid var(--line);padding:9px 16px;border-radius:999px;cursor:pointer;transition:all .15s;}
+  .tab-btn{font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:16px;background:var(--bg-card);color:var(--text-dim);border:1px solid var(--line);padding:9px 16px;border-radius:999px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;}
+  .tab-icon{width:16px;height:16px;flex:none;}
   .tab-btn:hover{color:var(--text);}
   .tab-btn.active{color:var(--bg);}
   .tab-btn[data-tab="lauf"].active{background:var(--lauf);border-color:var(--lauf);}
@@ -263,74 +263,16 @@
       </div>
     </div>
     <div class="title-row">
-      <div>
-        <h1>Training Log</h1>
-        <div class="daterange" id="dateRangeLabel">Juli 2026 – Juni 2027</div>
-      </div>
+      <h1>Training Log</h1>
+      <div class="daterange" id="dateRangeLabel">Juli 2026 – Juni 2027</div>
+    </div>
+
+    <div class="hero-row">
       <div class="header-image-box" id="headerImageBox" title="Bild hochladen/ändern">
         <input type="file" id="headerImageInput" accept="image/*" style="display:none;">
         <span class="header-image-placeholder" id="headerImagePlaceholder" data-i18n="headerImageAdd">+ Bild</span>
         <img id="headerImagePreview" style="display:none;" alt="">
         <button class="header-image-remove" id="headerImageRemove" style="display:none;" title="Bild entfernen" data-i18n-title="headerImageRemove">✕</button>
-      </div>
-    </div>
-
-    <div class="hero-icons">
-      <div class="hero-icon" style="color:var(--lauf)">
-        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="40" cy="10" r="6"></circle>
-          <path d="M36 8 L44 8" stroke-width="3"></path>
-          <path d="M36 16 L27 28 L14 32" fill="none"></path>
-          <path d="M36 16 L43 25 L54 20"></path>
-          <path d="M27 28 L32 40 L24 54"></path>
-          <path d="M27 28 L18 38 L22 52"></path>
-          <path d="M24 54 L18 58 M24 54 L30 58"></path>
-          <path d="M22 52 L16 54 M22 52 L26 56"></path>
-          <path d="M2 46 Q8 42 14 46" opacity=".45"></path>
-          <path d="M0 54 Q6 50 12 54" opacity=".3"></path>
-        </g></svg>
-      </div>
-      <div class="hero-icon" style="color:var(--kraft)">
-        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="32" cy="10" r="6"></circle>
-          <path d="M32 16 L32 34"></path>
-          <path d="M20 44 L26 34 L38 34 L44 44"></path>
-          <path d="M20 44 L17 56 M44 44 L47 56"></path>
-          <path d="M14 12 L50 12"></path>
-          <path d="M32 18 L14 12 M32 18 L50 12"></path>
-          <circle cx="8" cy="12" r="7"></circle>
-          <circle cx="8" cy="12" r="3" opacity=".5"></circle>
-          <circle cx="56" cy="12" r="7"></circle>
-          <circle cx="56" cy="12" r="3" opacity=".5"></circle>
-          <path d="M46 6 L50 2 M48 8 L52 5" opacity=".4"></path>
-        </g></svg>
-      </div>
-      <div class="hero-icon" style="color:var(--sauna)">
-        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="32" cy="12" r="6"></circle>
-          <path d="M20 56 L23 26 Q32 32 41 26 L44 56 Z"></path>
-          <path d="M28 26 L32 34 L36 26" opacity=".6"></path>
-          <path d="M23 40 L41 40" opacity=".5"></path>
-          <path d="M14 50 L20 50 M44 50 L50 50" opacity=".5"></path>
-          <path d="M25 6 C 23 2, 27 2, 25 -2" opacity=".55"></path>
-          <path d="M32 4 C 30 0, 34 0, 32 -4" opacity=".55"></path>
-          <path d="M39 6 C 37 2, 41 2, 39 -2" opacity=".55"></path>
-          <path d="M14 58 L50 58" opacity=".3"></path>
-        </g></svg>
-      </div>
-      <div class="hero-icon" style="color:var(--flex)">
-        <svg viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="30" cy="12" r="6"></circle>
-          <path d="M30 18 L26 30"></path>
-          <path d="M26 30 L16 42"></path>
-          <path d="M26 30 L38 40"></path>
-          <path d="M30 18 L48 10"></path>
-          <path d="M48 10 L60 2" opacity=".55"></path>
-          <path d="M12 44 L22 40 L28 44"></path>
-          <path d="M34 42 L44 38 L50 42"></path>
-          <path d="M2 56 Q10 50 18 55 T34 54 T50 55 T62 50" opacity=".45"></path>
-          <path d="M4 50 Q10 46 16 50" opacity=".3"></path>
-        </g></svg>
       </div>
     </div>
 
@@ -375,11 +317,26 @@
   </div>
 
   <nav class="tabs">
-    <button class="tab-btn" data-tab="lauf" data-i18n="tabLauf">Ausdauertraining</button>
-    <button class="tab-btn" data-tab="kraft" data-i18n="tabKraft">Krafttraining</button>
-    <button class="tab-btn" data-tab="flex" data-i18n="tabFlex">Flexibles Training</button>
-    <button class="tab-btn" data-tab="sauna" data-i18n="tabSauna">Sauna</button>
-    <button class="tab-btn" data-tab="uebersicht" data-i18n="tabUebersicht">Übersicht</button>
+    <button class="tab-btn" data-tab="lauf">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15.5" cy="5" r="1.8"></circle><path d="M13 9l-3 3-4 1"></path><path d="M13 9l2.5 2.5 3.5-1.5"></path><path d="M10 12l3 3-1 5"></path><path d="M10 12l-2.5 3 .5 4"></path></svg>
+      <span data-i18n="tabLauf">Ausdauertraining</span>
+    </button>
+    <button class="tab-btn" data-tab="kraft">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6"></path><path d="M2 8v8"></path><path d="M20 9v6"></path><path d="M22 8v8"></path><path d="M6 12h12"></path></svg>
+      <span data-i18n="tabKraft">Krafttraining</span>
+    </button>
+    <button class="tab-btn" data-tab="flex">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="5" r="1.8"></circle><path d="M15 9l-4 3 1 4"></path><path d="M15 9l5-2"></path><path d="M11 12l-3 2 1 4"></path><path d="M2 19q2.5-3 5-.5t5-.5 5-.5 5-.5"></path></svg>
+      <span data-i18n="tabFlex">Flexibles Training</span>
+    </button>
+    <button class="tab-btn" data-tab="sauna">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3c-1 1.3-1 2 0 3.3S10 8.7 9 10"></path><path d="M14 3c-1 1.3-1 2 0 3.3S15 8.7 14 10"></path><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3z"></path><path d="M4 14H2.5" ></path><path d="M21.5 14H20"></path></svg>
+      <span data-i18n="tabSauna">Sauna</span>
+    </button>
+    <button class="tab-btn" data-tab="uebersicht">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M11 20V4"></path><path d="M18 20v-7"></path></svg>
+      <span data-i18n="tabUebersicht">Übersicht</span>
+    </button>
   </nav>
 
   <section class="panel" id="panel-lauf">
