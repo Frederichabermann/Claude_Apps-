@@ -47,7 +47,6 @@
   .header-image-box:hover{border-color:var(--text-dim);}
   .header-image-placeholder{font-size:14px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
   .header-image-box img{width:100%;height:100%;object-fit:cover;display:block;}
-  .header-image-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
   .theme-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
   .theme-toggle:hover{color:var(--text);border-color:var(--text-dim);}
 
@@ -276,7 +275,6 @@
         <input type="file" id="headerImageInput" accept="image/*" style="display:none;">
         <span class="header-image-placeholder" id="headerImagePlaceholder" data-i18n="headerImageAdd">+ Bild</span>
         <img id="headerImagePreview" style="display:none;" alt="">
-        <button class="header-image-remove" id="headerImageRemove" style="display:none;" title="Bild entfernen" data-i18n-title="headerImageRemove">✕</button>
       </div>
     </div>
 
@@ -1786,17 +1784,14 @@ function resizeImageFile(file){
 function showHeaderImage(dataUrl){
   const preview = document.getElementById('headerImagePreview');
   const placeholder = document.getElementById('headerImagePlaceholder');
-  const removeBtn = document.getElementById('headerImageRemove');
   if(dataUrl){
     preview.src = dataUrl;
     preview.style.display = 'block';
     placeholder.style.display = 'none';
-    removeBtn.style.display = 'flex';
   } else {
     preview.style.display = 'none';
     preview.removeAttribute('src');
     placeholder.style.display = 'block';
-    removeBtn.style.display = 'none';
   }
 }
 function loadHeaderImage(){
@@ -1809,8 +1804,7 @@ function loadHeaderImage(){
   }
   showHeaderImage(state.headerImage || null);
 }
-document.getElementById('headerImageBox').addEventListener('click', (e)=>{
-  if(e.target.id === 'headerImageRemove') return;
+document.getElementById('headerImageBox').addEventListener('click', ()=>{
   document.getElementById('headerImageInput').click();
 });
 document.getElementById('headerImageInput').addEventListener('change', async (e)=>{
@@ -1825,12 +1819,6 @@ document.getElementById('headerImageInput').addEventListener('change', async (e)
     console.error('Bild konnte nicht gespeichert werden', err);
   }
   e.target.value = '';
-});
-document.getElementById('headerImageRemove').addEventListener('click', (e)=>{
-  e.stopPropagation();
-  delete state.headerImage;
-  saveState();
-  showHeaderImage(null);
 });
 
 function applyTheme(mode){
