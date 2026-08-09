@@ -40,6 +40,12 @@
   }
   body{transition:background-color .15s;}
   .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .header-toggles{display:flex;gap:8px;align-items:center;}
+  .header-image-box{position:relative;width:52px;height:38px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
+  .header-image-box:hover{border-color:var(--text-dim);}
+  .header-image-placeholder{font-size:10px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
+  .header-image-box img{width:100%;height:100%;object-fit:cover;display:block;}
+  .header-image-remove{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:9px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
   .theme-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
   .theme-toggle:hover{color:var(--text);border-color:var(--text-dim);}
 
@@ -86,6 +92,13 @@
   .panel.active{display:block;}
 
   .legend{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:var(--text-dim);line-height:1.7;}
+  .legend-box{margin-bottom:18px;}
+  .legend-box .legend{margin-bottom:0;border-radius:0 0 10px 10px;border-top:none;}
+  .legend-toggle{width:100%;text-align:left;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:pointer;font-family:'Inter',sans-serif;display:flex;justify-content:space-between;align-items:center;}
+  .legend-toggle:hover{color:var(--text);}
+  .legend-toggle.open{border-radius:10px 10px 0 0;border-bottom:none;}
+  .legend-toggle-arrow{transition:transform .15s;}
+  .legend-toggle.open .legend-toggle-arrow{transform:rotate(180deg);}
   .legend b{color:var(--text);}
 
   .week-card{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;}
@@ -108,6 +121,7 @@
   .unit-row{background:var(--bg-card-2);border-radius:8px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid transparent;}
   .unit-row.status-under{background:rgba(214,69,58,.14);border-color:rgba(214,69,58,.45);}
   .unit-row.status-over{background:rgba(143,214,160,.16);border-color:rgba(143,214,160,.5);}
+  .unit-row.is-today{outline:2px solid var(--text);outline-offset:-1px;}
   .unit-field{display:flex;flex-direction:column;gap:2px;}
   .unit-field input[type=date], .unit-field input[type=number], .unit-field input[type=text]{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:5px 7px;}
   .unit-field input[type=number]{width:70px;}
@@ -241,11 +255,20 @@
 <div id="app">
   <header>
     <div class="header-top">
-      <p class="eyebrow" id="loadStatus">Lade Trainingsdaten …</p>
-      <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
+      <p class="eyebrow" id="loadStatus" data-i18n="loading">Lade Trainingsdaten …</p>
+      <div class="header-toggles">
+        <div class="header-image-box" id="headerImageBox" title="Bild hochladen/ändern">
+          <input type="file" id="headerImageInput" accept="image/*" style="display:none;">
+          <span class="header-image-placeholder" id="headerImagePlaceholder" data-i18n="headerImageAdd">+ Bild</span>
+          <img id="headerImagePreview" style="display:none;" alt="">
+          <button class="header-image-remove" id="headerImageRemove" style="display:none;" title="Bild entfernen" data-i18n-title="headerImageRemove">✕</button>
+        </div>
+        <button class="theme-toggle" id="langToggle">EN</button>
+        <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
+      </div>
     </div>
     <h1>Training Log</h1>
-    <div class="daterange">Juli 2026 – Juni 2027</div>
+    <div class="daterange" id="dateRangeLabel">Juli 2026 – Juni 2027</div>
 
     <div class="hero-icons">
       <div class="hero-icon" style="color:var(--lauf)">
@@ -318,11 +341,11 @@
 
   <div class="sync-box">
     <div class="sync-header">
-      <span class="sync-title">Geräte-Sync über GitHub Gist</span>
-      <button class="sync-toggle" id="syncToggle">Einstellungen</button>
+      <span class="sync-title" data-i18n="syncTitle">Geräte-Sync über GitHub Gist</span>
+      <button class="sync-toggle" id="syncToggle" data-i18n="syncSettings">Einstellungen</button>
     </div>
     <div class="sync-panel" id="syncPanel" style="display:none;">
-      <div class="sync-desc">
+      <div class="sync-desc" data-i18n-html="syncDesc">
         Optional: synchronisiere deine Daten geräteübergreifend über einen privaten GitHub Gist. Token und Gist-ID werden nur lokal in <b>diesem</b> Browser gespeichert (localStorage), niemals sonst wohin übertragen außer an die GitHub API.<br>
         <b>Wichtig:</b> Die Gist-API funktioniert nur mit einem <b>klassischen</b> Personal Access Token mit Scope <b>gist</b> (Einstellungen → Developer settings → Tokens (classic)) — ein "fine-grained" Token funktioniert dafür <b>nicht</b>.<br>
         <b>Ablauf für 2 Geräte:</b> Auf Gerät 1 Token eintragen, Gist-ID leer lassen, "↑ Hochladen" klicken — danach steht dort eine neue Gist-ID. Diese exakt gleiche ID auf Gerät 2 eintragen (Feld "Gist-ID"), dort denselben Token eintragen, dann "↓ Herunterladen". Ohne identische Gist-ID auf beiden Geräten entstehen sonst zwei getrennte, nicht verbundene Gists.<br>
@@ -330,52 +353,55 @@
       </div>
       <div class="sync-fields">
         <div class="unit-field" style="flex:1 1 220px;">
-          <span class="date-input-label">Personal Access Token</span>
+          <span class="date-input-label" data-i18n="patLabel">Personal Access Token</span>
           <input type="password" id="syncTokenInput" placeholder="ghp_...">
         </div>
         <div class="unit-field" style="flex:1 1 220px;">
-          <span class="date-input-label">Gist-ID (optional)</span>
-          <input type="text" id="syncGistInput" placeholder="wird automatisch erstellt">
+          <span class="date-input-label" data-i18n="gistLabel">Gist-ID (optional)</span>
+          <input type="text" id="syncGistInput" placeholder="wird automatisch erstellt" data-i18n-placeholder="gistPlaceholder">
         </div>
       </div>
       <div class="bulk-actions">
-        <button class="bulk-apply" id="syncPushBtn">↑ Hochladen</button>
-        <button class="bulk-cancel" id="syncPullBtn">↓ Herunterladen</button>
+        <button class="bulk-apply" id="syncPushBtn" data-i18n="syncUpload">↑ Hochladen</button>
+        <button class="bulk-cancel" id="syncPullBtn" data-i18n="syncDownload">↓ Herunterladen</button>
       </div>
       <div class="bulk-status" id="syncStatus"></div>
     </div>
   </div>
 
   <nav class="tabs">
-    <button class="tab-btn" data-tab="lauf">Ausdauertraining</button>
-    <button class="tab-btn" data-tab="kraft">Krafttraining</button>
-    <button class="tab-btn" data-tab="flex">Flexibles Training</button>
-    <button class="tab-btn" data-tab="sauna">Sauna</button>
-    <button class="tab-btn" data-tab="uebersicht">Übersicht</button>
+    <button class="tab-btn" data-tab="lauf" data-i18n="tabLauf">Ausdauertraining</button>
+    <button class="tab-btn" data-tab="kraft" data-i18n="tabKraft">Krafttraining</button>
+    <button class="tab-btn" data-tab="flex" data-i18n="tabFlex">Flexibles Training</button>
+    <button class="tab-btn" data-tab="sauna" data-i18n="tabSauna">Sauna</button>
+    <button class="tab-btn" data-tab="uebersicht" data-i18n="tabUebersicht">Übersicht</button>
   </nav>
 
   <section class="panel" id="panel-lauf">
-    <div class="legend">
+    <div class="legend" data-i18n-html="laufLegendBody">
       <b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br>
       <span style="color:var(--under)">Rot</span> = weniger als geplant, <span style="color:var(--done)">grün</span> = geplant erreicht oder übertroffen.
     </div>
     <div class="upload-box">
-      <div class="upload-title">Excel-Upload</div>
-      <div class="upload-desc">
-        Datei mit den Spalten <b>Datum</b>, <b>Ziel</b> (km) und <b>Notiz</b> hochladen (.xlsx, .xls oder .csv, erste Zeile = Überschriften).<br>
-        Für jede Woche, die in der Datei vorkommt: Einheiten mit <b>gleichem Datum</b> werden aktualisiert (Ziel-km & Notiz, "Gelaufen"-Werte bleiben erhalten), neue Daten werden hinzugefügt. <span style="color:var(--over)">Alle anderen Einheiten dieser Wochen werden entfernt</span> — nur was in der Datei steht, bleibt übrig. Wochen ohne Eintrag in der Datei bleiben komplett unverändert.<br>
-        Liegt ein Datum nach der letzten vorhandenen Woche, werden automatisch neue Wochen angelegt (wie bei "+ Wochen einfügen").
-      </div>
-      <div class="upload-desc" style="margin-top:6px;">
-        <b>Datumsformat:</b> nutze in Excel ein eindeutiges Jahr (z. B. 21.07.2026 statt 21.07.26) — bei zweistelligen Jahreszahlen kann Excel das falsche Jahrzehnt einsetzen.
+      <div class="upload-title" data-i18n="uploadTitle">Excel-Upload</div>
+      <button class="legend-toggle" id="uploadDescToggle" style="margin-bottom:10px;"><span data-i18n="uploadDescToggle">Details &amp; Format</span> <span class="legend-toggle-arrow">▾</span></button>
+      <div id="uploadDescBody" style="display:none;">
+        <div class="upload-desc" data-i18n-html="uploadDesc1">
+          Datei mit den Spalten <b>Datum</b>, <b>Ziel</b> (km) und <b>Notiz</b> hochladen (.xlsx, .xls oder .csv, erste Zeile = Überschriften).<br>
+          Für jede Woche, die in der Datei vorkommt: Einheiten mit <b>gleichem Datum</b> werden aktualisiert (Ziel-km & Notiz, "Gelaufen"-Werte bleiben erhalten), neue Daten werden hinzugefügt. <span style="color:var(--over)">Alle anderen Einheiten dieser Wochen werden entfernt</span> — nur was in der Datei steht, bleibt übrig. Wochen ohne Eintrag in der Datei bleiben komplett unverändert.<br>
+          Liegt ein Datum nach der letzten vorhandenen Woche, werden automatisch neue Wochen angelegt (wie bei "+ Wochen einfügen").
+        </div>
+        <div class="upload-desc" style="margin-top:6px;" data-i18n-html="uploadDesc2">
+          <b>Datumsformat:</b> nutze in Excel ein eindeutiges Jahr (z. B. 21.07.2026 statt 21.07.26) — bei zweistelligen Jahreszahlen kann Excel das falsche Jahrzehnt einsetzen.
+        </div>
       </div>
       <input type="file" id="laufExcelInput" accept=".xlsx,.xls,.csv">
       <div class="upload-status" id="uploadStatus"></div>
     </div>
     <div class="bulk-box">
       <div class="bulk-triggers">
-        <button class="bulk-trigger" data-cat="lauf" data-mode="insert">+ Wochen einfügen</button>
-        <button class="bulk-trigger" data-cat="lauf" data-mode="update">+ Wochen aktualisieren</button>
+        <button class="bulk-trigger" data-cat="lauf" data-mode="insert" data-i18n="bulkInsert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="lauf" data-mode="update" data-i18n="bulkUpdate">+ Wochen aktualisieren</button>
       </div>
       <div class="bulk-form" data-cat="lauf" style="display:none;"></div>
     </div>
@@ -383,11 +409,11 @@
   </section>
 
   <section class="panel" id="panel-kraft">
-    <div class="legend">Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
+    <div class="legend" data-i18n="legendKraft">Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
-        <button class="bulk-trigger" data-cat="kraft" data-mode="insert">+ Wochen einfügen</button>
-        <button class="bulk-trigger" data-cat="kraft" data-mode="update">+ Wochen aktualisieren</button>
+        <button class="bulk-trigger" data-cat="kraft" data-mode="insert" data-i18n="bulkInsert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="kraft" data-mode="update" data-i18n="bulkUpdate">+ Wochen aktualisieren</button>
       </div>
       <div class="bulk-form" data-cat="kraft" style="display:none;"></div>
     </div>
@@ -395,11 +421,11 @@
   </section>
 
   <section class="panel" id="panel-flex">
-    <div class="legend">Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
+    <div class="legend" data-i18n="legendFlex">Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
-        <button class="bulk-trigger" data-cat="flex" data-mode="insert">+ Wochen einfügen</button>
-        <button class="bulk-trigger" data-cat="flex" data-mode="update">+ Wochen aktualisieren</button>
+        <button class="bulk-trigger" data-cat="flex" data-mode="insert" data-i18n="bulkInsert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="flex" data-mode="update" data-i18n="bulkUpdate">+ Wochen aktualisieren</button>
       </div>
       <div class="bulk-form" data-cat="flex" style="display:none;"></div>
     </div>
@@ -407,11 +433,11 @@
   </section>
 
   <section class="panel" id="panel-sauna">
-    <div class="legend">Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.</div>
+    <div class="legend" data-i18n="legendSauna">Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
-        <button class="bulk-trigger" data-cat="sauna" data-mode="insert">+ Wochen einfügen</button>
-        <button class="bulk-trigger" data-cat="sauna" data-mode="update">+ Wochen aktualisieren</button>
+        <button class="bulk-trigger" data-cat="sauna" data-mode="insert" data-i18n="bulkInsert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="sauna" data-mode="update" data-i18n="bulkUpdate">+ Wochen aktualisieren</button>
       </div>
       <div class="bulk-form" data-cat="sauna" style="display:none;"></div>
     </div>
@@ -420,40 +446,40 @@
 
   <section class="panel" id="panel-uebersicht">
     <div class="scope-row">
-      <span class="date-input-label" style="width:auto;">Zeitraum</span>
+      <span class="date-input-label" style="width:auto;" id="zeitraumLabel" data-i18n="zeitraum">Zeitraum</span>
       <select id="statScope"></select>
     </div>
     <div class="stat-grid" id="statGrid"></div>
-    <div class="section-title">Diese Woche</div>
+    <div class="section-title" id="spotlightTitle">Diese Woche</div>
     <div class="spotlight" id="spotlight"></div>
 
-    <div class="section-title">Jahresübersicht</div>
+    <div class="section-title" id="jahresuebersichtTitle" data-i18n="jahresuebersicht">Jahresübersicht</div>
     <div class="scope-row">
-      <span class="date-input-label" style="width:auto;">Jahr</span>
+      <span class="date-input-label" style="width:auto;" id="jahrLabel" data-i18n="jahr">Jahr</span>
       <select id="yearSelect"></select>
     </div>
     <div class="year-chart-block">
-      <div class="year-chart-title">Ausdauertraining — Ziel (km) vs. Gelaufen (km)</div>
+      <div class="year-chart-title" id="chartTitleLauf" data-i18n="chartTitleLauf">Ausdauertraining — Ziel (km) vs. Gelaufen (km)</div>
       <div id="yearChartLauf"></div>
     </div>
     <div class="year-chart-block">
-      <div class="year-chart-title">Krafttraining — Geplant vs. Erledigt</div>
+      <div class="year-chart-title" id="chartTitleKraft" data-i18n="chartTitleKraft">Krafttraining — Geplant vs. Erledigt</div>
       <div id="yearChartKraft"></div>
     </div>
     <div class="year-chart-block">
-      <div class="year-chart-title">Flexibles Training — Geplant vs. Erledigt</div>
+      <div class="year-chart-title" id="chartTitleFlex" data-i18n="chartTitleFlex">Flexibles Training — Geplant vs. Erledigt</div>
       <div id="yearChartFlex"></div>
     </div>
     <div class="year-chart-block">
-      <div class="year-chart-title">Sauna — Geplant vs. Erledigt</div>
+      <div class="year-chart-title" id="chartTitleSauna" data-i18n="chartTitleSauna">Sauna — Geplant vs. Erledigt</div>
       <div id="yearChartSauna"></div>
     </div>
 
-    <div class="section-title">Wochenfortschritt in %</div>
+    <div class="section-title" id="wochenfortschrittTitle" data-i18n="wochenfortschritt">Wochenfortschritt in %</div>
     <div class="week-pct-grid" id="weekPctGrid"></div>
   </section>
 
-  <footer>Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.</footer>
+  <footer data-i18n="footer">Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.</footer>
 </div>
 
 <script>
@@ -496,6 +522,245 @@ function fmt(iso){const [y,m,d]=iso.split("-");return `${d}.${m}.${y}`;}
 function fmtKm(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1});}
 function todayISO(){return new Date().toISOString().slice(0,10);}
 
+// ---------------- i18n (DE / EN) ----------------
+let currentLang = 'de';
+const I18N = {
+  de: {
+    loading: 'Lade Trainingsdaten …',
+    planStatus: 'Training Log · {n} Wochen',
+    dayMode: '☀️ Tagmodus',
+    nightMode: '🌙 Nachtmodus',
+    langToggle: 'EN',
+    syncTitle: 'Geräte-Sync über GitHub Gist',
+    syncSettings: 'Einstellungen',
+    syncDesc: 'Optional: synchronisiere deine Daten geräteübergreifend über einen privaten GitHub Gist. Token und Gist-ID werden nur lokal in <b>diesem</b> Browser gespeichert (localStorage), niemals sonst wohin übertragen außer an die GitHub API.<br><b>Wichtig:</b> Die Gist-API funktioniert nur mit einem <b>klassischen</b> Personal Access Token mit Scope <b>gist</b> (Einstellungen → Developer settings → Tokens (classic)) — ein "fine-grained" Token funktioniert dafür <b>nicht</b>.<br><b>Ablauf für 2 Geräte:</b> Auf Gerät 1 Token eintragen, Gist-ID leer lassen, "↑ Hochladen" klicken — danach steht dort eine neue Gist-ID. Diese exakt gleiche ID auf Gerät 2 eintragen (Feld "Gist-ID"), dort denselben Token eintragen, dann "↓ Herunterladen". Ohne identische Gist-ID auf beiden Geräten entstehen sonst zwei getrennte, nicht verbundene Gists.<br>Beim Öffnen der App wird automatisch geprüft, ob im Gist ein neuerer Stand liegt — deine lokalen Änderungen werden dabei nie ungefragt überschrieben, solange du sie nicht schon hochgeladen hast.',
+    patLabel: 'Personal Access Token',
+    gistLabel: 'Gist-ID (optional)',
+    gistPlaceholder: 'wird automatisch erstellt',
+    syncUpload: '↑ Hochladen',
+    syncDownload: '↓ Herunterladen',
+    tabLauf: 'Ausdauertraining',
+    tabKraft: 'Krafttraining',
+    tabFlex: 'Flexibles Training',
+    tabSauna: 'Sauna',
+    tabUebersicht: 'Übersicht',
+    laufLegendToggle: 'Intensitätsskala & Farblegende',
+    uploadDescToggle: 'Details & Format',
+    headerImageAdd: '+ Bild',
+    headerImageRemove: 'Bild entfernen',
+    laufLegendBody: '<b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br><span style="color:var(--under)">Rot</span> = weniger als geplant, <span style="color:var(--done)">grün</span> = geplant erreicht oder übertroffen.',
+    uploadTitle: 'Excel-Upload',
+    uploadDesc1: 'Datei mit den Spalten <b>Datum</b>, <b>Ziel</b> (km) und <b>Notiz</b> hochladen (.xlsx, .xls oder .csv, erste Zeile = Überschriften).<br>Für jede Woche, die in der Datei vorkommt: Einheiten mit <b>gleichem Datum</b> werden aktualisiert (Ziel-km & Notiz, "Gelaufen"-Werte bleiben erhalten), neue Daten werden hinzugefügt. <span style="color:var(--over)">Alle anderen Einheiten dieser Wochen werden entfernt</span> — nur was in der Datei steht, bleibt übrig. Wochen ohne Eintrag in der Datei bleiben komplett unverändert.<br>Liegt ein Datum nach der letzten vorhandenen Woche, werden automatisch neue Wochen angelegt (wie bei "+ Wochen einfügen").',
+    uploadDesc2: '<b>Datumsformat:</b> nutze in Excel ein eindeutiges Jahr (z. B. 21.07.2026 statt 21.07.26) — bei zweistelligen Jahreszahlen kann Excel das falsche Jahrzehnt einsetzen.',
+    bulkInsert: '+ Wochen einfügen',
+    bulkUpdate: '+ Wochen aktualisieren',
+    legendKraft: 'Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.',
+    legendFlex: 'Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.',
+    legendSauna: 'Trag die Anzahl Gänge ein, passe Datum an oder füge weitere Saunagänge hinzu.',
+    zeitraum: 'Zeitraum',
+    jahr: 'Jahr',
+    dieseWoche: 'Diese Woche',
+    woche: 'Woche',
+    jahresuebersicht: 'Jahresübersicht',
+    chartTitleLauf: 'Ausdauertraining — Ziel (km) vs. Gelaufen (km)',
+    chartTitleKraft: 'Krafttraining — Geplant vs. Erledigt',
+    chartTitleFlex: 'Flexibles Training — Geplant vs. Erledigt',
+    chartTitleSauna: 'Sauna — Geplant vs. Erledigt',
+    wochenfortschritt: 'Wochenfortschritt in %',
+    footer: 'Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.',
+    gesamtAlleWochen: 'Gesamt (alle Wochen)',
+    einheiten: 'Einheiten',
+    gesamt: 'Gesamt',
+    zielKm: 'Ziel (km)',
+    gelaufenKm: 'Gelaufen (km)',
+    erledigtAm: 'Erledigt am',
+    notiz: 'Notiz',
+    uebungFokus: 'Übung / Fokus',
+    training: 'Training',
+    erledigt: 'Erledigt',
+    erledigtFrage: 'Erledigt?',
+    erledigtGaenge: 'Erledigt (Gänge)',
+    datum: 'Datum',
+    addEinheit: '+ Einheit',
+    removeEinheit: 'Einheit entfernen',
+    keineEinheiten: 'Keine Einheiten diese Woche',
+    phaseGrundlage: 'Grundlage',
+    phaseAufbau: 'Aufbau',
+    phaseErholung: 'Erholung',
+    phaseErhaltung: 'Erhaltung',
+    abWoche: 'Ab Woche',
+    anzahlWochen: 'Anzahl Wochen',
+    anzahlNeueWochen: 'Anzahl neuer Wochen',
+    wochentage: 'Wochentage',
+    uebernehmen: 'Übernehmen',
+    abbrechen: 'Abbrechen',
+    gaenge: 'Gänge',
+    bulkWarning: 'Achtung: In den gewählten Wochen bleiben nur die hier ausgewählten Wochentage bestehen — alle anderen Einheiten dieser Wochen werden entfernt.',
+    dayHint: 'Bitte oben mindestens einen Wochentag auswählen.',
+    chartZiel: 'Ziel (km)',
+    chartGelaufen: 'Gelaufen (km)',
+    chartGeplant: 'Geplant',
+    chartErledigt: 'Erledigt',
+    jahressumme: 'Jahressumme',
+    kmZiel: 'km Ziel',
+    kmGelaufen: 'km gelaufen',
+    geplantWort: 'geplant',
+    erledigtWort: 'erledigt',
+    spotlightSub: 'Woche {w} ({phase}) · {mo} – {so} · Einheiten bearbeiten geht auch direkt im jeweiligen Reiter',
+    syncNeedToken: 'Bitte zuerst einen Personal Access Token eintragen.',
+    syncUploading: 'Lade hoch …',
+    syncUploaded: 'Erfolgreich hochgeladen · {time} · Gist-ID: {id}',
+    syncUploadError: 'Fehler beim Hochladen: {msg}',
+    syncNeedTokenGist: 'Bitte Token und Gist-ID eintragen (oder zuerst einmal hochladen).',
+    syncDownloading: 'Lade herunter …',
+    syncLocalCurrent: 'Lokaler Stand ist bereits aktuell (kein Download nötig).',
+    syncConfirmOverwrite: 'Deine lokalen Änderungen sind neuer als der Stand im Gist. Trotzdem herunterladen und die lokalen Änderungen verwerfen?',
+    syncDownloadCancelled: 'Download abgebrochen — lokaler Stand bleibt erhalten.',
+    syncDownloaded: 'Erfolgreich geladen · {time}',
+    syncDownloadError: 'Fehler beim Laden: {msg}',
+    uploadReading: 'Lese Datei …',
+    uploadNoRows: 'Keine Zeilen gefunden.',
+    uploadNoValidRows: 'Keine gültigen Zeilen.',
+    uploadOutOfRange: 'Alle {n} Zeile(n) liegen vor dem Startdatum des Plans ({date}) — Datum in Excel prüfen.',
+    uploadBadDates: '{n} Zeile(n) hatten kein lesbares Datum — bitte Spalte "Datum" prüfen.',
+    uploadResult: '{weeks} Woche(n) betroffen{added_weeks} · {updated} Einheit(en) aktualisiert · {added} neu hinzugefügt · {removed} entfernt{skipped}.',
+    uploadAddedWeeksNote: ' (davon {n} neu angelegt)',
+    uploadSkippedNote: ' · {n} Zeile(n) übersprungen',
+    uploadReadError: 'Fehler beim Einlesen: {msg}',
+    bulkNeedCount: 'Bitte eine gültige Anzahl Wochen angeben.',
+    bulkNeedWeekday: 'Bitte mindestens einen Wochentag wählen.',
+    bulkNoWeeksFound: 'Keine passenden Wochen gefunden.',
+    bulkInsertResult: '{n} neue Woche(n) hinzugefügt (Woche {from}–{to}) · {c} Einheit(en) pro Woche befüllt.',
+    bulkUpdateResult: '{n} Woche(n) verarbeitet · {updated} Einheit(en) aktualisiert · {added} neu hinzugefügt · {removed} entfernt.',
+    gistDescription: 'Trainingsplan Daten (automatisch erstellt)',
+  },
+  en: {
+    loading: 'Loading training data …',
+    planStatus: 'Training Log · {n} weeks',
+    dayMode: '☀️ Day mode',
+    nightMode: '🌙 Night mode',
+    langToggle: 'DE',
+    syncTitle: 'Cross-device sync via GitHub Gist',
+    syncSettings: 'Settings',
+    syncDesc: 'Optional: sync your data across devices via a private GitHub Gist. The token and Gist ID are stored only locally in <b>this</b> browser (localStorage), never sent anywhere except to the GitHub API.<br><b>Important:</b> the Gist API only works with a <b>classic</b> Personal Access Token with the <b>gist</b> scope (Settings → Developer settings → Tokens (classic)) — a "fine-grained" token will <b>not</b> work for this.<br><b>Workflow for 2 devices:</b> On device 1, enter the token, leave the Gist ID blank, click "↑ Upload" — a new Gist ID will appear. Enter that exact same ID on device 2 (field "Gist ID"), enter the same token there, then click "↓ Download". Without an identical Gist ID on both devices, you\'ll end up with two separate, unconnected Gists.<br>When opening the app, it automatically checks whether the Gist has a newer version — your local changes are never overwritten without asking, as long as you haven\'t already uploaded them.',
+    patLabel: 'Personal Access Token',
+    gistLabel: 'Gist ID (optional)',
+    gistPlaceholder: 'created automatically',
+    syncUpload: '↑ Upload',
+    syncDownload: '↓ Download',
+    tabLauf: 'Endurance Training',
+    tabKraft: 'Strength Training',
+    tabFlex: 'Flexible Training',
+    tabSauna: 'Sauna',
+    tabUebersicht: 'Overview',
+    laufLegendToggle: 'Intensity scale & color legend',
+    uploadDescToggle: 'Details & format',
+    headerImageAdd: '+ Photo',
+    headerImageRemove: 'Remove photo',
+    laufLegendBody: '<b>Intensity scale:</b> 45% very easy · 50% Zone 2 / conversational pace · 60–65% moderately fast · 70–80% hard · 85–95% very hard (VO₂max intervals)<br><span style="color:var(--under)">Red</span> = below target, <span style="color:var(--done)">green</span> = target reached or exceeded.',
+    uploadTitle: 'Excel Upload',
+    uploadDesc1: 'Upload a file with the columns <b>Date</b>, <b>Target</b> (km), and <b>Note</b> (.xlsx, .xls, or .csv, first row = headers).<br>For every week found in the file: sessions with the <b>same date</b> are updated (target km & note, "completed" values are kept), new entries are added. <span style="color:var(--over)">All other sessions in these weeks are removed</span> — only what\'s in the file remains. Weeks not mentioned in the file stay completely unchanged.<br>If a date lies beyond the last existing week, new weeks are created automatically (like with "+ Add weeks").',
+    uploadDesc2: '<b>Date format:</b> use a four-digit year in Excel (e.g. 21.07.2026 instead of 21.07.26) — with two-digit years Excel can pick the wrong decade.',
+    bulkInsert: '+ Add weeks',
+    bulkUpdate: '+ Update weeks',
+    legendKraft: 'Date, focus, and number of sessions per week are fully customizable.',
+    legendFlex: 'Date, activity, and number of sessions per week are fully customizable.',
+    legendSauna: 'Enter the number of rounds, adjust the date, or add further sauna rounds.',
+    zeitraum: 'Period',
+    jahr: 'Year',
+    dieseWoche: 'This week',
+    woche: 'Week',
+    jahresuebersicht: 'Yearly overview',
+    chartTitleLauf: 'Endurance Training — Target (km) vs. Completed (km)',
+    chartTitleKraft: 'Strength Training — Planned vs. Done',
+    chartTitleFlex: 'Flexible Training — Planned vs. Done',
+    chartTitleSauna: 'Sauna — Planned vs. Done',
+    wochenfortschritt: 'Weekly progress in %',
+    footer: 'Changes are saved automatically in the browser (localStorage) and persist after reloading — only on this device/browser, unless you set up the optional GitHub Gist sync above.',
+    gesamtAlleWochen: 'Total (all weeks)',
+    einheiten: 'sessions',
+    gesamt: 'Total',
+    zielKm: 'Target (km)',
+    gelaufenKm: 'Completed (km)',
+    erledigtAm: 'Completed on',
+    notiz: 'Note',
+    uebungFokus: 'Exercise / Focus',
+    training: 'Activity',
+    erledigt: 'Done',
+    erledigtFrage: 'Done?',
+    erledigtGaenge: 'Completed (rounds)',
+    datum: 'Date',
+    addEinheit: '+ Session',
+    removeEinheit: 'Remove session',
+    keineEinheiten: 'No sessions this week',
+    phaseGrundlage: 'Base',
+    phaseAufbau: 'Build-up',
+    phaseErholung: 'Recovery',
+    phaseErhaltung: 'Maintenance',
+    abWoche: 'From week',
+    anzahlWochen: 'Number of weeks',
+    anzahlNeueWochen: 'Number of new weeks',
+    wochentage: 'Weekdays',
+    uebernehmen: 'Apply',
+    abbrechen: 'Cancel',
+    gaenge: 'Rounds',
+    bulkWarning: 'Note: in the selected weeks, only the weekdays chosen here will remain — all other sessions in these weeks will be removed.',
+    dayHint: 'Please select at least one weekday above.',
+    chartZiel: 'Target (km)',
+    chartGelaufen: 'Completed (km)',
+    chartGeplant: 'Planned',
+    chartErledigt: 'Done',
+    jahressumme: 'Yearly total',
+    kmZiel: 'km target',
+    kmGelaufen: 'km completed',
+    geplantWort: 'planned',
+    erledigtWort: 'done',
+    spotlightSub: 'Week {w} ({phase}) · {mo} – {so} · sessions can also be edited directly in the respective tab',
+    syncNeedToken: 'Please enter a Personal Access Token first.',
+    syncUploading: 'Uploading …',
+    syncUploaded: 'Successfully uploaded · {time} · Gist ID: {id}',
+    syncUploadError: 'Upload failed: {msg}',
+    syncNeedTokenGist: 'Please enter a token and Gist ID (or upload once first).',
+    syncDownloading: 'Downloading …',
+    syncLocalCurrent: 'Local version is already up to date (no download needed).',
+    syncConfirmOverwrite: 'Your local changes are newer than the version in the Gist. Download anyway and discard the local changes?',
+    syncDownloadCancelled: 'Download cancelled — local version kept.',
+    syncDownloaded: 'Successfully downloaded · {time}',
+    syncDownloadError: 'Download failed: {msg}',
+    uploadReading: 'Reading file …',
+    uploadNoRows: 'No rows found.',
+    uploadNoValidRows: 'No valid rows.',
+    uploadOutOfRange: 'All {n} row(s) are before the plan\'s start date ({date}) — check the date in Excel.',
+    uploadBadDates: '{n} row(s) had no readable date — please check the "Date" column.',
+    uploadResult: '{weeks} week(s) affected{added_weeks} · {updated} session(s) updated · {added} added · {removed} removed{skipped}.',
+    uploadAddedWeeksNote: ' ({n} newly created)',
+    uploadSkippedNote: ' · {n} row(s) skipped',
+    uploadReadError: 'Error reading file: {msg}',
+    bulkNeedCount: 'Please enter a valid number of weeks.',
+    bulkNeedWeekday: 'Please select at least one weekday.',
+    bulkNoWeeksFound: 'No matching weeks found.',
+    bulkInsertResult: '{n} new week(s) added (week {from}–{to}) · {c} session(s) per week filled in.',
+    bulkUpdateResult: '{n} week(s) processed · {updated} session(s) updated · {added} added · {removed} removed.',
+    gistDescription: 'Training plan data (created automatically)',
+  }
+};
+function t(key, vars){
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || I18N.de[key] || key;
+  if(vars) Object.keys(vars).forEach(k=>{ s = s.replace('{'+k+'}', vars[k]); });
+  return s;
+}
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WEEKDAY_LABELS = {
+  de: {Mo:'Mo',Di:'Di',Mi:'Mi',Do:'Do',Fr:'Fr',Sa:'Sa',So:'So'},
+  en: {Mo:'Mon',Di:'Tue',Mi:'Wed',Do:'Thu',Fr:'Fri',Sa:'Sat',So:'Sun'}
+};
+function phaseLabel(phaseKey){
+  const map = {Grundlage:'phaseGrundlage', Aufbau:'phaseAufbau', Erholung:'phaseErholung', Erhaltung:'phaseErhaltung'};
+  return t(map[phaseKey] || phaseKey);
+}
+
+
 // ---------------- Build full-year week list ----------------
 const ANCHOR = marathonWeeks[0].mi;
 const LAST_MARATHON_MI = marathonWeeks[marathonWeeks.length-1].mi;
@@ -534,7 +799,7 @@ function buildWeeks(){
 let weeks = buildWeeks();
 
 const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-function formatMonthYear(iso){ const [y,m] = iso.split('-'); return `${MONTHS_DE[parseInt(m,10)-1]} ${y}`; }
+function formatMonthYear(iso){ const [y,m] = iso.split('-'); const arr = currentLang==='en'?MONTHS_EN:MONTHS_DE; return `${arr[parseInt(m,10)-1]} ${y}`; }
 function updateDateRangeLabel(){
   document.querySelector('.daterange').textContent = `${formatMonthYear(WINDOW_START)} – ${formatMonthYear(WINDOW_END)}`;
 }
@@ -670,7 +935,7 @@ async function loadState(){
   const materialized = ensureUnits();
   if(didFix || materialized) saveState();
   updateDateRangeLabel();
-  document.getElementById("loadStatus").textContent = "Trainingsplan · " + weeks.length + " Wochen";
+  document.getElementById("loadStatus").textContent = t('planStatus',{n:weeks.length});
   renderAll();
 }
 function saveState(){
@@ -712,8 +977,8 @@ async function githubErrorMessage(res){
 }
 async function pushToGist(){
   const token = getSyncToken();
-  if(!token){ setSyncStatus('Bitte zuerst einen Personal Access Token eintragen.', true); return; }
-  setSyncStatus('Lade hoch …', false);
+  if(!token){ setSyncStatus(t('syncNeedToken'), true); return; }
+  setSyncStatus(t('syncUploading'), false);
   const content = JSON.stringify(state, null, 2);
   const gistId = getSyncGistId();
   try{
@@ -728,25 +993,25 @@ async function pushToGist(){
       res = await fetch('https://api.github.com/gists', {
         method:'POST',
         headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github+json' },
-        body: JSON.stringify({ description:'Trainingsplan Daten (automatisch erstellt)', public:false, files:{ [GIST_FILENAME]: { content } } })
+        body: JSON.stringify({ description:t('gistDescription'), public:false, files:{ [GIST_FILENAME]: { content } } })
       });
     }
     if(!res.ok){ throw new Error(await githubErrorMessage(res)); }
     const data = await res.json();
     if(!gistId){ setSyncGistId(data.id); refreshSyncFields(); }
-    setSyncStatus('Erfolgreich hochgeladen · ' + new Date().toLocaleTimeString('de-DE') + ' · Gist-ID: ' + data.id, false);
+    setSyncStatus(t('syncUploaded',{time:new Date().toLocaleTimeString(currentLang==='en'?'en-US':'de-DE'), id:data.id}), false);
   }catch(e){
-    setSyncStatus('Fehler beim Hochladen: ' + e.message, true);
+    setSyncStatus(t('syncUploadError',{msg:e.message}), true);
   }
 }
 async function pullFromGist(silent){
   const token = getSyncToken();
   const gistId = getSyncGistId();
   if(!token || !gistId){
-    if(!silent) setSyncStatus('Bitte Token und Gist-ID eintragen (oder zuerst einmal hochladen).', true);
+    if(!silent) setSyncStatus(t('syncNeedTokenGist'), true);
     return;
   }
-  setSyncStatus('Lade herunter …', false);
+  setSyncStatus(t('syncDownloading'), false);
   try{
     const res = await fetch(`https://api.github.com/gists/${gistId}`, {
       headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github+json' }
@@ -762,11 +1027,11 @@ async function pullFromGist(silent){
     const remoteUpdatedAt = parsed.updatedAt || 0;
     if(remoteUpdatedAt <= localUpdatedAt){
       if(silent){
-        setSyncStatus('Lokaler Stand ist bereits aktuell (kein Download nötig).', false);
+        setSyncStatus(t('syncLocalCurrent'), false);
         return;
       }
-      const proceed = confirm('Deine lokalen Änderungen sind neuer als der Stand im Gist. Trotzdem herunterladen und die lokalen Änderungen verwerfen?');
-      if(!proceed){ setSyncStatus('Download abgebrochen — lokaler Stand bleibt erhalten.', false); return; }
+      const proceed = confirm(t('syncConfirmOverwrite'));
+      if(!proceed){ setSyncStatus(t('syncDownloadCancelled'), false); return; }
     }
 
     state = parsed;
@@ -778,9 +1043,9 @@ async function pullFromGist(silent){
     buildStatScopeOptions();
     updateDateRangeLabel();
     renderAll();
-    setSyncStatus('Erfolgreich geladen · ' + new Date().toLocaleTimeString('de-DE'), false);
+    setSyncStatus(t('syncDownloaded',{time:new Date().toLocaleTimeString(currentLang==='en'?'en-US':'de-DE')}), false);
   }catch(e){
-    setSyncStatus('Fehler beim Laden: ' + e.message, true);
+    setSyncStatus(t('syncDownloadError',{msg:e.message}), true);
   }
 }
 
@@ -854,12 +1119,12 @@ function setUploadStatus(msg, cls){
   el.className = 'upload-status' + (cls ? ' '+cls : '');
 }
 async function handleLaufUpload(file){
-  setUploadStatus('Lese Datei …', '');
+  setUploadStatus(t('uploadReading'), '');
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, {type:'array', cellDates:true});
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
-  if(!rows.length){ setUploadStatus('Keine Zeilen gefunden.', 'error'); return; }
+  if(!rows.length){ setUploadStatus(t('uploadNoRows'), 'error'); return; }
 
   const parsedRows = rows.map(row=>{
     const keys = Object.keys(row);
@@ -903,9 +1168,9 @@ async function handleLaufUpload(file){
 
   const weekNumbers = Object.keys(byWeek);
   if(!weekNumbers.length){
-    let msg = 'Keine gültigen Zeilen.';
-    if(outOfRange) msg = `Alle ${outOfRange} Zeile(n) liegen vor dem Startdatum des Plans (${formatMonthYear(WINDOW_START)}) — Datum in Excel prüfen.`;
-    else if(badDates) msg = `${badDates} Zeile(n) hatten kein lesbares Datum — bitte Spalte "Datum" prüfen.`;
+    let msg = t('uploadNoValidRows');
+    if(outOfRange) msg = t('uploadOutOfRange',{n:outOfRange, date:formatMonthYear(WINDOW_START)});
+    else if(badDates) msg = t('uploadBadDates',{n:badDates});
     setUploadStatus(msg, 'error');
     return;
   }
@@ -932,7 +1197,7 @@ async function handleLaufUpload(file){
   });
   saveState();
   renderAll();
-  setUploadStatus(`${weekNumbers.length} Woche(n) betroffen${addedWeeks?` (davon ${addedWeeks} neu angelegt)`:''} · ${updated} Einheit(en) aktualisiert · ${added} neu hinzugefügt · ${removed} entfernt${skipped?` · ${skipped} Zeile(n) übersprungen`:''}.`, 'ok');
+  setUploadStatus(t('uploadResult',{weeks:weekNumbers.length, added_weeks: addedWeeks?t('uploadAddedWeeksNote',{n:addedWeeks}):'', updated, added, removed, skipped: skipped?t('uploadSkippedNote',{n:skipped}):''}), 'ok');
 }
 
 // ---------------- Current week ----------------
@@ -955,41 +1220,41 @@ function laufUnitRow(wk,u){
   if(u.actualKm !== '' && u.actualKm !== undefined && u.actualKm !== null && !isNaN(target)){
     statusClass = parseFloat(u.actualKm) < target ? 'status-under' : 'status-over';
   }
-  return `<div class="unit-row ${statusClass}" data-cat="lauf" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field"><span class="date-input-label">Ziel (km)</span><input type="number" step="0.1" class="u-plankm" value="${u.planKm||''}" placeholder="km"></div>
-    <div class="unit-field"><span class="date-input-label">Gelaufen (km)</span><input type="number" step="0.1" class="u-actualkm" value="${u.actualKm||''}" placeholder="km"></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">Notiz</span><textarea class="u-note" rows="1" placeholder="z. B. Tempo, Intervalle">${escHtml(u.note)}</textarea></div>
-    <button class="u-remove" title="Einheit entfernen">✕</button>
+  return `<div class="unit-row ${statusClass} ${u.date===todayISO()?'is-today':''}" data-cat="lauf" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('zielKm')}</span><input type="number" step="0.1" class="u-plankm" value="${u.planKm||''}" placeholder="km"></div>
+    <div class="unit-field"><span class="date-input-label">${t('gelaufenKm')}</span><input type="number" step="0.1" class="u-actualkm" value="${u.actualKm||''}" placeholder="km"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="z. B. Tempo, Intervalle">${escHtml(u.note)}</textarea></div>
+    <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 function kraftUnitRow(wk,u){
-  return `<div class="unit-row ${isUnitDone('kraft',u)?'status-over':''}" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">Übung / Fokus</span><textarea class="u-note" rows="1" placeholder="z. B. Beine">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?'Erledigt':'Erledigt?'}</button></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
-    <button class="u-remove" title="Einheit entfernen">✕</button>
+  return `<div class="unit-row ${isUnitDone('kraft',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('uebungFokus')}</span><textarea class="u-note" rows="1" placeholder="z. B. Beine">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 function saunaUnitRow(wk,u){
-  return `<div class="unit-row ${isUnitDone('sauna',u)?'status-over':''}" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt (Gänge)</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">Notiz</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
-    <button class="u-remove" title="Einheit entfernen">✕</button>
+  return `<div class="unit-row ${isUnitDone('sauna',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtGaenge')}</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 
 function flexUnitRow(wk,u){
-  return `<div class="unit-row flex ${isUnitDone('flex',u)?'status-over':''}" data-cat="flex" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">Datum</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">Training</span><textarea class="u-note" rows="1" placeholder="z. B. Yoga, Schwimmen, Radfahren">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt</span><button class="check-btn u-toggle flex ${u.done?'done':''}">${u.done?'Erledigt':'Erledigt?'}</button></div>
-    <div class="unit-field"><span class="date-input-label">Erledigt am</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
-    <button class="u-remove" title="Einheit entfernen">✕</button>
+  return `<div class="unit-row flex ${isUnitDone('flex',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="flex" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('training')}</span><textarea class="u-note" rows="1" placeholder="z. B. Yoga, Schwimmen, Radfahren">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle flex ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 
@@ -1000,10 +1265,10 @@ function renderCategory(cat, currentIdx, rowFn){
     return `<div class="week-card ${i===currentIdx?'current':''}">
       <div class="week-card-head">
         <div class="week-num">${wk.w}</div>
-        ${cat==='lauf'?`<div class="phase-tag">${wk.phase}</div>`:''}
-        <button class="u-add" data-cat="${cat}" data-week="${wk.w}">+ Einheit</button>
+        ${cat==='lauf'?`<div class="phase-tag">${phaseLabel(wk.phase)}</div>`:''}
+        <button class="u-add" data-cat="${cat}" data-week="${wk.w}">${t('addEinheit')}</button>
       </div>
-      <div class="unit-list">${sorted.length ? sorted.map(u=>rowFn(wk,u)).join('') : '<div class="empty-hint">Keine Einheiten diese Woche</div>'}</div>
+      <div class="unit-list">${sorted.length ? sorted.map(u=>rowFn(wk,u)).join('') : `<div class="empty-hint">${t('keineEinheiten')}</div>`}</div>
     </div>`;
   }).join('');
 }
@@ -1016,8 +1281,8 @@ function renderSauna(currentIdx){ return renderCategory('sauna', currentIdx, sau
 let statScope = null; // 'all' or a week number string
 function buildStatScopeOptions(){
   const sel = document.getElementById('statScope');
-  sel.innerHTML = `<option value="all">Gesamt (alle Wochen)</option>` +
-    weeks.map(wk=>`<option value="${wk.w}">Woche ${wk.w} · ${fmt(wk.mi)}–${fmt(wk.so)}</option>`).join('');
+  sel.innerHTML = `<option value="all">${t('gesamtAlleWochen')}</option>` +
+    weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}–${fmt(wk.so)}</option>`).join('');
 }
 function countDone(cat){
   let done=0, total=0;
@@ -1042,17 +1307,17 @@ function renderStats(){
   const totalAll = lauf.total+kraft.total+flex.total+sauna.total;
   const pct = (d,t)=> t? Math.round(d/t*100):0;
   const cards = [
-    {cls:'lauf', label:'Ausdauertraining', d:lauf.done, t:lauf.total},
-    {cls:'kraft', label:'Krafttraining', d:kraft.done, t:kraft.total},
-    {cls:'flex', label:'Flexibles Training', d:flex.done, t:flex.total},
-    {cls:'sauna', label:'Sauna', d:sauna.done, t:sauna.total},
-    {cls:'gesamt', label:'Gesamt', d:totalDone, t:totalAll},
+    {cls:'lauf', label:t('tabLauf'), d:lauf.done, t:lauf.total},
+    {cls:'kraft', label:t('tabKraft'), d:kraft.done, t:kraft.total},
+    {cls:'flex', label:t('tabFlex'), d:flex.done, t:flex.total},
+    {cls:'sauna', label:t('tabSauna'), d:sauna.done, t:sauna.total},
+    {cls:'gesamt', label:t('gesamt'), d:totalDone, t:totalAll},
   ];
   document.getElementById('statGrid').innerHTML = cards.map(c=>`
     <div class="stat-card ${c.cls}">
       <div class="pct">${pct(c.d,c.t)}%</div>
       <div class="label">${c.label}</div>
-      <div class="sub">${c.d} / ${c.t} Einheiten</div>
+      <div class="sub">${c.d} / ${c.t} ${t('einheiten')}</div>
       <div class="bar"><div style="width:${pct(c.d,c.t)}%"></div></div>
     </div>`).join('');
 }
@@ -1064,12 +1329,18 @@ function unitRowFor(cat, wk, u){
   return saunaUnitRow(wk,u);
 }
 function renderSpotlight(currentIdx){
-  const wk = weeks[currentIdx];
+  let wk = weeks[currentIdx];
+  let titleText = t('dieseWoche');
+  if(statScope && statScope!=='all'){
+    const scopedWk = weeks.find(w=>String(w.w)===String(statScope));
+    if(scopedWk){ wk = scopedWk; titleText = `${t('woche')} ${wk.w}`; }
+  }
+  document.getElementById('spotlightTitle').textContent = titleText;
   const items = [];
   ALL_CATS.forEach(cat=>{ (state.units[cat][wk.w]||[]).forEach(u=>items.push({cat,u})); });
   items.sort((a,b)=>(a.u.date||'').localeCompare(b.u.date||''));
   document.getElementById('spotlight').innerHTML =
-    `<div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">Woche ${wk.w} (${wk.phase}) · ${fmt(wk.mo)} – ${fmt(wk.so)} · Einheiten bearbeiten geht auch direkt im jeweiligen Reiter</div>
+    `<div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">${t('spotlightSub',{w:wk.w,phase:phaseLabel(wk.phase),mo:fmt(wk.mo),so:fmt(wk.so)})}</div>
      <div class="unit-list">` +
     items.map(it=>unitRowFor(it.cat, wk, it.u)).join('') + `</div>`;
 }
@@ -1158,7 +1429,7 @@ function svgBarChart(months, keyA, keyB, colorA, colorB, fmtFn){
     bars += `<rect x="${xB.toFixed(1)}" y="${yB.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,hB).toFixed(1)}" rx="2" fill="${colorB}"></rect>`;
     if(m[keyA]>0) bars += `<text x="${(xA+barW/2).toFixed(1)}" y="${Math.max(10,yA-4).toFixed(1)}" text-anchor="middle" class="chart-val" fill="${colorA}">${fmtFn(m[keyA])}</text>`;
     if(m[keyB]>0) bars += `<text x="${(xB+barW/2).toFixed(1)}" y="${Math.max(10,yB-4).toFixed(1)}" text-anchor="middle" class="chart-val" fill="${colorB}">${fmtFn(m[keyB])}</text>`;
-    bars += `<text x="${(gx+groupW/2).toFixed(1)}" y="${H-8}" text-anchor="middle" class="chart-month">${MONTHS_SHORT_DE[i]}</text>`;
+    bars += `<text x="${(gx+groupW/2).toFixed(1)}" y="${H-8}" text-anchor="middle" class="chart-month">${(currentLang==='en'?MONTHS_SHORT_EN:MONTHS_SHORT_DE)[i]}</text>`;
   });
   bars += `<line x1="${padL}" y1="${(padT+chartH).toFixed(1)}" x2="${W-padR}" y2="${(padT+chartH).toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
   return `<svg viewBox="0 0 ${W} ${H}" class="year-chart-svg">${bars}</svg>`;
@@ -1172,7 +1443,7 @@ function chartLegend(colorA,labelA,colorB,labelB){
 function chartTotals(months, keyA, keyB, colorA, colorB, labelA, labelB, fmtFn){
   const totalA = months.reduce((s,m)=>s+m[keyA],0);
   const totalB = months.reduce((s,m)=>s+m[keyB],0);
-  return `<div class="chart-total">Jahressumme: <b style="color:${colorA}">${fmtFn(totalA)} ${labelA}</b> · <b style="color:${colorB}">${fmtFn(totalB)} ${labelB}</b></div>`;
+  return `<div class="chart-total">${t('jahressumme')}: <b style="color:${colorA}">${fmtFn(totalA)} ${labelA}</b> · <b style="color:${colorB}">${fmtFn(totalB)} ${labelB}</b></div>`;
 }
 function buildYearOptions(){
   const sel = document.getElementById('yearSelect');
@@ -1191,20 +1462,20 @@ function renderYearCharts(){
   const fmtKmVal = v => fmtKm(v);
   const fmtCountVal = v => String(v);
   document.getElementById('yearChartLauf').innerHTML =
-    chartLegend('var(--lauf)','Ziel (km)','var(--done)','Gelaufen (km)') +
-    chartTotals(months,'planKm','actualKm','var(--lauf)','var(--done)','km Ziel','km gelaufen',fmtKmVal) +
+    chartLegend('var(--lauf)',t('chartZiel'),'var(--done)',t('chartGelaufen')) +
+    chartTotals(months,'planKm','actualKm','var(--lauf)','var(--done)',t('kmZiel'),t('kmGelaufen'),fmtKmVal) +
     svgBarChart(months,'planKm','actualKm','var(--lauf)','var(--done)',fmtKmVal);
   document.getElementById('yearChartKraft').innerHTML =
-    chartLegend('var(--kraft)','Geplant','var(--done)','Erledigt') +
-    chartTotals(months,'kraftPlan','kraftDone','var(--kraft)','var(--done)','geplant','erledigt',fmtCountVal) +
+    chartLegend('var(--kraft)',t('chartGeplant'),'var(--done)',t('chartErledigt')) +
+    chartTotals(months,'kraftPlan','kraftDone','var(--kraft)','var(--done)',t('geplantWort'),t('erledigtWort'),fmtCountVal) +
     svgBarChart(months,'kraftPlan','kraftDone','var(--kraft)','var(--done)',fmtCountVal);
   document.getElementById('yearChartFlex').innerHTML =
-    chartLegend('var(--flex)','Geplant','var(--done)','Erledigt') +
-    chartTotals(months,'flexPlan','flexDone','var(--flex)','var(--done)','geplant','erledigt',fmtCountVal) +
+    chartLegend('var(--flex)',t('chartGeplant'),'var(--done)',t('chartErledigt')) +
+    chartTotals(months,'flexPlan','flexDone','var(--flex)','var(--done)',t('geplantWort'),t('erledigtWort'),fmtCountVal) +
     svgBarChart(months,'flexPlan','flexDone','var(--flex)','var(--done)',fmtCountVal);
   document.getElementById('yearChartSauna').innerHTML =
-    chartLegend('var(--sauna)','Geplant','var(--done)','Erledigt') +
-    chartTotals(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)','geplant','erledigt',fmtCountVal) +
+    chartLegend('var(--sauna)',t('chartGeplant'),'var(--done)',t('chartErledigt')) +
+    chartTotals(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)',t('geplantWort'),t('erledigtWort'),fmtCountVal) +
     svgBarChart(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)',fmtCountVal);
 }
 
@@ -1239,27 +1510,27 @@ function bulkFieldHtml(label, type, cls, attrs){
   return `<div class="unit-field"><span class="date-input-label">${label}</span><input type="${type}" class="${cls}" ${attrStr}></div>`;
 }
 function bulkWeekdayCheckboxesHtml(){
-  return `<div class="unit-field" style="flex:1 1 100%;"><span class="date-input-label">Wochentage</span>
-    <div class="bulk-weekdays">` + Object.keys(WEEKDAY_OFFSETS).map(d=>`<label class="wd-check"><input type="checkbox" class="bulk-wd" value="${d}"> ${d}</label>`).join('') + `</div></div>`;
+  return `<div class="unit-field" style="flex:1 1 100%;"><span class="date-input-label">${t('wochentage')}</span>
+    <div class="bulk-weekdays">` + Object.keys(WEEKDAY_OFFSETS).map(d=>`<label class="wd-check"><input type="checkbox" class="bulk-wd" value="${d}"> ${WEEKDAY_LABELS[currentLang][d]}</label>`).join('') + `</div></div>`;
 }
 function bulkDayBlockHtml(cat, mode, day, saved){
   saved = saved || {};
   let fields = '';
   if(cat==='lauf'){
-    fields = bulkFieldHtml('Ziel (km)','number',`bulk-zielkm-${day}`,{step:'0.1',placeholder:'km',value:esc(saved.zielkm)}) +
-             bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+    fields = bulkFieldHtml(t('zielKm'),'number',`bulk-zielkm-${day}`,{step:'0.1',placeholder:'km',value:esc(saved.zielkm)}) +
+             bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
   } else if(cat==='kraft'){
-    fields = bulkFieldHtml('Übung / Fokus','text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
+    fields = bulkFieldHtml(t('uebungFokus'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
   } else if(cat==='flex'){
-    fields = bulkFieldHtml('Training','text',`bulk-fokus-${day}`,{placeholder:'z. B. Yoga, Schwimmen',value:esc(saved.fokus)});
+    fields = bulkFieldHtml(t('training'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Yoga, Schwimmen',value:esc(saved.fokus)});
   } else {
-    fields = bulkFieldHtml('Gänge','number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
-    if(mode==='update') fields += bulkFieldHtml('Notiz','text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+    fields = bulkFieldHtml(t('gaenge'),'number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
+    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
   }
-  return `<div class="bulk-day-block" data-day="${day}"><div class="bulk-day-label">${day}</div><div class="bulk-day-row">${fields}</div></div>`;
+  return `<div class="bulk-day-block" data-day="${day}"><div class="bulk-day-label">${WEEKDAY_LABELS[currentLang][day]}</div><div class="bulk-day-row">${fields}</div></div>`;
 }
 function bulkDayFieldsHtml(cat, mode, days, savedByDay){
-  if(!days.length) return `<div class="bulk-day-hint">Bitte oben mindestens einen Wochentag auswählen.</div>`;
+  if(!days.length) return `<div class="bulk-day-hint">${t('dayHint')}</div>`;
   return days.map(day=>bulkDayBlockHtml(cat, mode, day, (savedByDay||{})[day])).join('');
 }
 function captureBulkDayValues(cat, formEl){
@@ -1285,18 +1556,18 @@ function captureBulkDayValues(cat, formEl){
 function buildBulkForm(cat, mode){
   let html = `<div class="bulk-form-inner">`;
   if(mode==='update'){
-    html += `<div class="unit-field" style="flex:1 1 100%;"><span class="bulk-warning">Achtung: In den gewählten Wochen bleiben nur die hier ausgewählten Wochentage bestehen — alle anderen Einheiten dieser Wochen werden entfernt.</span></div>`;
-    html += `<div class="unit-field"><span class="date-input-label">Ab Woche</span><select class="bulk-startweek">` +
-      weeks.map(wk=>`<option value="${wk.w}">Woche ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
-    html += bulkFieldHtml('Anzahl Wochen','number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
+    html += `<div class="unit-field" style="flex:1 1 100%;"><span class="bulk-warning">${t('bulkWarning')}</span></div>`;
+    html += `<div class="unit-field"><span class="date-input-label">${t('abWoche')}</span><select class="bulk-startweek">` +
+      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
+    html += bulkFieldHtml(t('anzahlWochen'),'number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
   } else {
-    html += bulkFieldHtml('Anzahl neuer Wochen','number','bulk-count',{min:'1',value:'52',style:'width:70px;'});
+    html += bulkFieldHtml(t('anzahlNeueWochen'),'number','bulk-count',{min:'1',value:'52',style:'width:70px;'});
   }
   html += bulkWeekdayCheckboxesHtml();
   html += `<div class="bulk-day-fields" style="flex:1 1 100%;">${bulkDayFieldsHtml(cat, mode, [])}</div>`;
   html += `<div class="bulk-actions">
-      <button class="bulk-apply" data-cat="${cat}" data-mode="${mode}">Übernehmen</button>
-      <button class="bulk-cancel" data-cat="${cat}">Abbrechen</button>
+      <button class="bulk-apply" data-cat="${cat}" data-mode="${mode}">${t('uebernehmen')}</button>
+      <button class="bulk-cancel" data-cat="${cat}">${t('abbrechen')}</button>
     </div>
     <div class="bulk-status" data-cat="${cat}"></div>
   </div>`;
@@ -1339,9 +1610,9 @@ function showBulkStatus(formEl, msg, isError){
 
 function applyBulkInsert(cat, formEl){
   const count = parseInt(formEl.querySelector('.bulk-count').value, 10);
-  if(!count || count < 1){ showBulkStatus(formEl,'Bitte eine gültige Anzahl Wochen angeben.', true); return; }
+  if(!count || count < 1){ showBulkStatus(formEl,t('bulkNeedCount'), true); return; }
   const wds = getSelectedWeekdays(formEl);
-  if(!wds.length){ showBulkStatus(formEl,'Bitte mindestens einen Wochentag wählen.', true); return; }
+  if(!wds.length){ showBulkStatus(formEl,t('bulkNeedWeekday'), true); return; }
   const contentByDay = {};
   wds.forEach(wd=>{ contentByDay[wd] = readBulkContentForDay(cat, formEl, wd); });
 
@@ -1362,19 +1633,19 @@ function applyBulkInsert(cat, formEl){
   buildStatScopeOptions();
   updateDateRangeLabel();
   renderAll();
-  showBulkStatus(formEl, `${newWeeks.length} neue Woche(n) hinzugefügt (Woche ${prevLen+1}–${weeks.length}) · ${wds.length} Einheit(en) pro Woche befüllt.`, false);
+  showBulkStatus(formEl, t('bulkInsertResult',{n:newWeeks.length, from:prevLen+1, to:weeks.length, c:wds.length}), false);
 }
 function applyBulkUpdate(cat, formEl){
   const startWeek = parseInt(formEl.querySelector('.bulk-startweek').value, 10);
   const count = parseInt(formEl.querySelector('.bulk-count').value, 10);
-  if(!count || count < 1){ showBulkStatus(formEl,'Bitte eine gültige Anzahl Wochen angeben.', true); return; }
+  if(!count || count < 1){ showBulkStatus(formEl,t('bulkNeedCount'), true); return; }
   const wds = getSelectedWeekdays(formEl);
-  if(!wds.length){ showBulkStatus(formEl,'Bitte mindestens einen Wochentag wählen.', true); return; }
+  if(!wds.length){ showBulkStatus(formEl,t('bulkNeedWeekday'), true); return; }
   const contentByDay = {};
   wds.forEach(wd=>{ contentByDay[wd] = readBulkContentForDay(cat, formEl, wd); });
 
   const targetWeeks = weeks.filter(wk=>wk.w >= startWeek).slice(0, count);
-  if(!targetWeeks.length){ showBulkStatus(formEl,'Keine passenden Wochen gefunden.', true); return; }
+  if(!targetWeeks.length){ showBulkStatus(formEl,t('bulkNoWeeksFound'), true); return; }
 
   let updated=0, added=0, removed=0;
   targetWeeks.forEach(wk=>{
@@ -1392,7 +1663,7 @@ function applyBulkUpdate(cat, formEl){
   });
   saveState();
   renderAll();
-  showBulkStatus(formEl, `${targetWeeks.length} Woche(n) verarbeitet · ${updated} Einheit(en) aktualisiert · ${added} neu hinzugefügt · ${removed} entfernt.`, false);
+  showBulkStatus(formEl, t('bulkUpdateResult',{n:targetWeeks.length, updated, added, removed}), false);
 }
 
 // ---------------- Events ----------------
@@ -1494,7 +1765,7 @@ document.getElementById('laufExcelInput').addEventListener('change', async e=>{
   const file = e.target.files[0];
   if(!file) return;
   try{ await handleLaufUpload(file); }
-  catch(err){ setUploadStatus('Fehler beim Einlesen: ' + err.message, 'error'); }
+  catch(err){ setUploadStatus(t('uploadReadError',{msg:err.message}), 'error'); }
   e.target.value = '';
 });
 
@@ -1508,9 +1779,80 @@ document.getElementById('syncGistInput').addEventListener('change', e=>setSyncGi
 document.getElementById('syncPushBtn').addEventListener('click', pushToGist);
 document.getElementById('syncPullBtn').addEventListener('click', ()=>pullFromGist(false));
 
+// ---------------- Header image upload ----------------
+const HEADER_IMAGE_KEY = 'trainingsplan-header-image';
+function resizeImageFile(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=>reject(new Error('read failed'));
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>reject(new Error('decode failed'));
+      img.onload = ()=>{
+        const maxDim = 480;
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          if(w >= h){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function showHeaderImage(dataUrl){
+  const preview = document.getElementById('headerImagePreview');
+  const placeholder = document.getElementById('headerImagePlaceholder');
+  const removeBtn = document.getElementById('headerImageRemove');
+  if(dataUrl){
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+    preview.removeAttribute('src');
+    placeholder.style.display = 'block';
+    removeBtn.style.display = 'none';
+  }
+}
+function loadHeaderImage(){
+  try{
+    const saved = localStorage.getItem(HEADER_IMAGE_KEY);
+    if(saved) showHeaderImage(saved);
+  }catch(e){}
+}
+document.getElementById('headerImageBox').addEventListener('click', (e)=>{
+  if(e.target.id === 'headerImageRemove') return;
+  document.getElementById('headerImageInput').click();
+});
+document.getElementById('headerImageInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file);
+    localStorage.setItem(HEADER_IMAGE_KEY, dataUrl);
+    showHeaderImage(dataUrl);
+  }catch(err){
+    console.error('Bild konnte nicht gespeichert werden', err);
+  }
+  e.target.value = '';
+});
+document.getElementById('headerImageRemove').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  try{ localStorage.removeItem(HEADER_IMAGE_KEY); }catch(err){}
+  showHeaderImage(null);
+});
+loadHeaderImage();
+
 function applyTheme(mode){
   document.body.classList.toggle('light-theme', mode==='light');
-  document.getElementById('themeToggle').textContent = mode==='light' ? '🌙 Nachtmodus' : '☀️ Tagmodus';
+  document.getElementById('themeToggle').textContent = mode==='light' ? t('nightMode') : t('dayMode');
   try{ localStorage.setItem('trainingsplan-theme', mode); }catch(e){}
 }
 (function initTheme(){
@@ -1520,6 +1862,40 @@ function applyTheme(mode){
 })();
 document.getElementById('themeToggle').addEventListener('click', ()=>{
   applyTheme(document.body.classList.contains('light-theme') ? 'dark' : 'light');
+});
+document.getElementById('uploadDescToggle').addEventListener('click', ()=>{
+  const btn = document.getElementById('uploadDescToggle');
+  const body = document.getElementById('uploadDescBody');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  btn.classList.toggle('open', !open);
+});
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.title = t(el.getAttribute('data-i18n-title')); });
+  document.getElementById('langToggle').textContent = t('langToggle');
+  document.getElementById('themeToggle').textContent = document.body.classList.contains('light-theme') ? t('nightMode') : t('dayMode');
+}
+function applyLanguage(lang, skipRender){
+  currentLang = lang;
+  try{ localStorage.setItem('trainingsplan-lang', lang); }catch(e){}
+  applyStaticI18n();
+  if(!skipRender){
+    updateDateRangeLabel();
+    buildStatScopeOptions();
+    renderAll();
+  }
+}
+(function initLanguage(){
+  let lang = 'de';
+  try{ lang = localStorage.getItem('trainingsplan-lang') || 'de'; }catch(e){}
+  applyLanguage(lang, true);
+})();
+document.getElementById('langToggle').addEventListener('click', ()=>{
+  applyLanguage(currentLang==='de' ? 'en' : 'de');
 });
 
 loadState();
