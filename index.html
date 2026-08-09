@@ -41,11 +41,12 @@
   body{transition:background-color .15s;}
   .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .header-toggles{display:flex;gap:8px;align-items:center;}
-  .header-image-box{position:relative;width:52px;height:38px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
+  .title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .header-image-box{position:relative;width:120px;height:88px;border:1px dashed var(--line);border-radius:10px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
   .header-image-box:hover{border-color:var(--text-dim);}
-  .header-image-placeholder{font-size:10px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
+  .header-image-placeholder{font-size:12px;color:var(--text-faint);font-family:'Inter',sans-serif;pointer-events:none;}
   .header-image-box img{width:100%;height:100%;object-fit:cover;display:block;}
-  .header-image-remove{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:9px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .header-image-remove{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--under);color:#fff;border:none;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
   .theme-toggle{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
   .theme-toggle:hover{color:var(--text);border-color:var(--text-dim);}
 
@@ -257,18 +258,22 @@
     <div class="header-top">
       <p class="eyebrow" id="loadStatus" data-i18n="loading">Lade Trainingsdaten …</p>
       <div class="header-toggles">
-        <div class="header-image-box" id="headerImageBox" title="Bild hochladen/ändern">
-          <input type="file" id="headerImageInput" accept="image/*" style="display:none;">
-          <span class="header-image-placeholder" id="headerImagePlaceholder" data-i18n="headerImageAdd">+ Bild</span>
-          <img id="headerImagePreview" style="display:none;" alt="">
-          <button class="header-image-remove" id="headerImageRemove" style="display:none;" title="Bild entfernen" data-i18n-title="headerImageRemove">✕</button>
-        </div>
         <button class="theme-toggle" id="langToggle">EN</button>
         <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
       </div>
     </div>
-    <h1>Training Log</h1>
-    <div class="daterange" id="dateRangeLabel">Juli 2026 – Juni 2027</div>
+    <div class="title-row">
+      <div>
+        <h1>Training Log</h1>
+        <div class="daterange" id="dateRangeLabel">Juli 2026 – Juni 2027</div>
+      </div>
+      <div class="header-image-box" id="headerImageBox" title="Bild hochladen/ändern">
+        <input type="file" id="headerImageInput" accept="image/*" style="display:none;">
+        <span class="header-image-placeholder" id="headerImagePlaceholder" data-i18n="headerImageAdd">+ Bild</span>
+        <img id="headerImagePreview" style="display:none;" alt="">
+        <button class="header-image-remove" id="headerImageRemove" style="display:none;" title="Bild entfernen" data-i18n-title="headerImageRemove">✕</button>
+      </div>
+    </div>
 
     <div class="hero-icons">
       <div class="hero-icon" style="color:var(--lauf)">
@@ -936,6 +941,7 @@ async function loadState(){
   if(didFix || materialized) saveState();
   updateDateRangeLabel();
   document.getElementById("loadStatus").textContent = t('planStatus',{n:weeks.length});
+  loadHeaderImage();
   renderAll();
 }
 function saveState(){
@@ -1042,6 +1048,7 @@ async function pullFromGist(silent){
     saveState();
     buildStatScopeOptions();
     updateDateRangeLabel();
+    loadHeaderImage();
     renderAll();
     setSyncStatus(t('syncDownloaded',{time:new Date().toLocaleTimeString(currentLang==='en'?'en-US':'de-DE')}), false);
   }catch(e){
@@ -1758,6 +1765,7 @@ buildStatScopeOptions();
 document.getElementById('statScope').addEventListener('change', e=>{
   statScope = e.target.value;
   renderStats();
+  renderSpotlight(getCurrentWeekIndex());
 });
 document.getElementById('yearSelect').addEventListener('change', renderYearCharts);
 
@@ -1780,7 +1788,7 @@ document.getElementById('syncPushBtn').addEventListener('click', pushToGist);
 document.getElementById('syncPullBtn').addEventListener('click', ()=>pullFromGist(false));
 
 // ---------------- Header image upload ----------------
-const HEADER_IMAGE_KEY = 'trainingsplan-header-image';
+const HEADER_IMAGE_KEY = 'trainingsplan-header-image'; // legacy key, migrated into state.headerImage
 function resizeImageFile(file){
   return new Promise((resolve, reject)=>{
     const reader = new FileReader();
@@ -1822,10 +1830,14 @@ function showHeaderImage(dataUrl){
   }
 }
 function loadHeaderImage(){
-  try{
-    const saved = localStorage.getItem(HEADER_IMAGE_KEY);
-    if(saved) showHeaderImage(saved);
-  }catch(e){}
+  // one-time migration from the old separate localStorage key into state.headerImage
+  if(!state.headerImage){
+    try{
+      const legacy = localStorage.getItem(HEADER_IMAGE_KEY);
+      if(legacy){ state.headerImage = legacy; localStorage.removeItem(HEADER_IMAGE_KEY); saveState(); }
+    }catch(e){}
+  }
+  showHeaderImage(state.headerImage || null);
 }
 document.getElementById('headerImageBox').addEventListener('click', (e)=>{
   if(e.target.id === 'headerImageRemove') return;
@@ -1836,7 +1848,8 @@ document.getElementById('headerImageInput').addEventListener('change', async (e)
   if(!file) return;
   try{
     const dataUrl = await resizeImageFile(file);
-    localStorage.setItem(HEADER_IMAGE_KEY, dataUrl);
+    state.headerImage = dataUrl;
+    saveState();
     showHeaderImage(dataUrl);
   }catch(err){
     console.error('Bild konnte nicht gespeichert werden', err);
@@ -1845,10 +1858,10 @@ document.getElementById('headerImageInput').addEventListener('change', async (e)
 });
 document.getElementById('headerImageRemove').addEventListener('click', (e)=>{
   e.stopPropagation();
-  try{ localStorage.removeItem(HEADER_IMAGE_KEY); }catch(err){}
+  delete state.headerImage;
+  saveState();
   showHeaderImage(null);
 });
-loadHeaderImage();
 
 function applyTheme(mode){
   document.body.classList.toggle('light-theme', mode==='light');
