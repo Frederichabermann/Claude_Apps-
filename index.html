@@ -146,6 +146,7 @@
   .date-input{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 6px;}
   .km-input::placeholder, .gaenge-input::placeholder{color:var(--text-faint);}
   .date-input-label{font-size:9.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;width:100%;}
+  .weekday-tag{color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
 
   .check-btn{border:none;background:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-faint);display:flex;align-items:center;gap:6px;padding:0;}
   .check-btn::before{content:'';width:15px;height:15px;border-radius:4px;border:1.5px solid var(--text-faint);flex:none;}
@@ -719,6 +720,14 @@ const WEEKDAY_LABELS = {
   de: {Mo:'Mo',Di:'Di',Mi:'Mi',Do:'Do',Fr:'Fr',Sa:'Sa',So:'So'},
   en: {Mo:'Mon',Di:'Tue',Mi:'Wed',Do:'Thu',Fr:'Fri',Sa:'Sat',So:'Sun'}
 };
+const WEEKDAY_BY_JS_DAY = ['So','Mo','Di','Mi','Do','Fr','Sa']; // Date.getUTCDay(): 0=Sunday
+function weekdayAbbr(dateIso){
+  if(!dateIso) return '';
+  const d = new Date(dateIso+'T00:00:00Z');
+  if(isNaN(d)) return '';
+  const key = WEEKDAY_BY_JS_DAY[d.getUTCDay()];
+  return WEEKDAY_LABELS[currentLang][key];
+}
 function phaseLabel(phaseKey){
   const map = {Grundlage:'phaseGrundlage', Aufbau:'phaseAufbau', Erholung:'phaseErholung', Erhaltung:'phaseErhaltung'};
   return t(map[phaseKey] || phaseKey);
@@ -1187,39 +1196,39 @@ function laufUnitRow(wk,u){
     statusClass = parseFloat(u.actualKm) < target ? 'status-under' : 'status-over';
   }
   return `<div class="unit-row ${statusClass} ${u.date===todayISO()?'is-today':''}" data-cat="lauf" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field"><span class="date-input-label">${t('zielKm')}</span><input type="number" step="0.1" class="u-plankm" value="${u.planKm||''}" placeholder="km"></div>
     <div class="unit-field"><span class="date-input-label">${t('gelaufenKm')}</span><input type="number" step="0.1" class="u-actualkm" value="${u.actualKm||''}" placeholder="km"></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="z. B. Tempo, Intervalle">${escHtml(u.note)}</textarea></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 function kraftUnitRow(wk,u){
   return `<div class="unit-row ${isUnitDone('kraft',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('uebungFokus')}</span><textarea class="u-note" rows="1" placeholder="z. B. Beine">${escHtml(u.note)}</textarea></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 function saunaUnitRow(wk,u){
   return `<div class="unit-row ${isUnitDone('sauna',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtGaenge')}</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 
 function flexUnitRow(wk,u){
   return `<div class="unit-row flex ${isUnitDone('flex',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="flex" data-week="${wk.w}" data-id="${u.id}">
-    <div class="unit-field"><span class="date-input-label">${t('datum')}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('training')}</span><textarea class="u-note" rows="1" placeholder="z. B. Yoga, Schwimmen, Radfahren">${escHtml(u.note)}</textarea></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle flex ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
