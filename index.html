@@ -1738,8 +1738,8 @@ document.getElementById('app').addEventListener('change', e=>{
   else if(e.target.classList.contains('u-donedate')) updateUnit(cat,week,id,{doneDate:val});
 });
 
-document.querySelector('.tab-btn[data-tab="lauf"]').classList.add('active');
-document.getElementById('panel-lauf').classList.add('active');
+document.querySelector('.tab-btn[data-tab="uebersicht"]').classList.add('active');
+document.getElementById('panel-uebersicht').classList.add('active');
 
 buildStatScopeOptions();
 document.getElementById('statScope').addEventListener('change', e=>{
