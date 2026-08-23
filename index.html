@@ -95,6 +95,8 @@
   .legend-box{margin-bottom:18px;}
   .legend-box .legend{margin-bottom:0;border-radius:0 0 10px 10px;border-top:none;}
   .legend-toggle{width:100%;text-align:left;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:pointer;font-family:'Inter',sans-serif;display:flex;justify-content:space-between;align-items:center;}
+  .jump-current-btn{display:block;width:100%;text-align:center;background:var(--bg-card-2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;margin-bottom:14px;font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;}
+  .jump-current-btn:hover{border-color:var(--text-dim);}
   .legend-toggle:hover{color:var(--text);}
   .legend-toggle.open{border-radius:10px 10px 0 0;border-bottom:none;}
   .legend-toggle-arrow{transition:transform .15s;}
@@ -346,6 +348,7 @@
   </nav>
 
   <section class="panel" id="panel-lauf">
+    <button class="jump-current-btn" data-cat="lauf" data-i18n="jumpToCurrent">↓ Zur aktuellen Woche</button>
     <div class="legend" data-i18n-html="laufLegendBody">
       <b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br>
       <span style="color:var(--under)">Rot</span> = weniger als geplant, <span style="color:var(--done)">grün</span> = geplant erreicht oder übertroffen.
@@ -377,6 +380,7 @@
   </section>
 
   <section class="panel" id="panel-kraft">
+    <button class="jump-current-btn" data-cat="kraft" data-i18n="jumpToCurrent">↓ Zur aktuellen Woche</button>
     <div class="legend" data-i18n="legendKraft">Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
@@ -389,6 +393,7 @@
   </section>
 
   <section class="panel" id="panel-flex">
+    <button class="jump-current-btn" data-cat="flex" data-i18n="jumpToCurrent">↓ Zur aktuellen Woche</button>
     <div class="legend" data-i18n="legendFlex">Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
@@ -401,6 +406,7 @@
   </section>
 
   <section class="panel" id="panel-sauna">
+    <button class="jump-current-btn" data-cat="sauna" data-i18n="jumpToCurrent">↓ Zur aktuellen Woche</button>
     <div class="legend" data-i18n="legendSauna">Datum und Anzahl der Einheiten pro Woche sind frei anpassbar.</div>
     <div class="bulk-box">
       <div class="bulk-triggers">
@@ -439,7 +445,7 @@
       <div id="yearChartFlex"></div>
     </div>
     <div class="year-chart-block">
-      <div class="year-chart-title" id="chartTitleSauna" data-i18n="chartTitleSauna">Sauna — Geplant vs. Erledigt</div>
+      <div class="year-chart-title" id="chartTitleSauna" data-i18n="chartTitleSauna">Sauna — Erledigte Gänge</div>
       <div id="yearChartSauna"></div>
     </div>
 
@@ -514,6 +520,8 @@ const I18N = {
     tabUebersicht: 'Übersicht',
     laufLegendToggle: 'Intensitätsskala & Farblegende',
     uploadDescToggle: 'Details & Format',
+    jumpToCurrent: '↓ Zur aktuellen Woche',
+    updateRangeTo: 'Bis Woche',
     headerImageAdd: '+ Bild',
     headerImageRemove: 'Bild entfernen',
     laufLegendBody: '<b>Intensitätsskala:</b> 45 % sehr locker · 50 % Zone-2 / Gesprächstempo · 60–65 % moderat schnell · 70–80 % hart · 85–95 % sehr hart (VO₂max-Intervalle)<br><span style="color:var(--under)">Rot</span> = weniger als geplant, <span style="color:var(--done)">grün</span> = geplant erreicht oder übertroffen.',
@@ -533,7 +541,7 @@ const I18N = {
     chartTitleLauf: 'Ausdauertraining — Ziel (km) vs. Gelaufen (km)',
     chartTitleKraft: 'Krafttraining — Geplant vs. Erledigt',
     chartTitleFlex: 'Flexibles Training — Geplant vs. Erledigt',
-    chartTitleSauna: 'Sauna — Geplant vs. Erledigt',
+    chartTitleSauna: 'Sauna — Erledigte Gänge',
     wochenfortschritt: 'Wochenfortschritt in %',
     footer: 'Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.',
     gesamtAlleWochen: 'Gesamt (alle Wochen)',
@@ -623,6 +631,8 @@ const I18N = {
     tabUebersicht: 'Overview',
     laufLegendToggle: 'Intensity scale & color legend',
     uploadDescToggle: 'Details & format',
+    jumpToCurrent: '↓ Jump to current week',
+    updateRangeTo: 'To week',
     headerImageAdd: '+ Photo',
     headerImageRemove: 'Remove photo',
     laufLegendBody: '<b>Intensity scale:</b> 45% very easy · 50% Zone 2 / conversational pace · 60–65% moderately fast · 70–80% hard · 85–95% very hard (VO₂max intervals)<br><span style="color:var(--under)">Red</span> = below target, <span style="color:var(--done)">green</span> = target reached or exceeded.',
@@ -642,7 +652,7 @@ const I18N = {
     chartTitleLauf: 'Endurance Training — Target (km) vs. Completed (km)',
     chartTitleKraft: 'Strength Training — Planned vs. Done',
     chartTitleFlex: 'Flexible Training — Planned vs. Done',
-    chartTitleSauna: 'Sauna — Planned vs. Done',
+    chartTitleSauna: 'Sauna — Completed rounds',
     wochenfortschritt: 'Weekly progress in %',
     footer: 'Changes are saved automatically in the browser (localStorage) and persist after reloading — only on this device/browser, unless you set up the optional GitHub Gist sync above.',
     gesamtAlleWochen: 'Total (all weeks)',
@@ -1240,7 +1250,7 @@ function renderCategory(cat, currentIdx, rowFn){
   return weeks.map((wk,i)=>{
     const units = state.units[cat][wk.w] || [];
     const sorted = units.slice().sort((a,b)=> (a.date||'').localeCompare(b.date||''));
-    return `<div class="week-card ${i===currentIdx?'current':''}">
+    return `<div class="week-card ${i===currentIdx?'current':''}" id="weekcard-${cat}-${wk.w}">
       <div class="week-card-head">
         <div class="week-num">${wk.w}</div>
         ${cat==='lauf'?`<div class="phase-tag">${phaseLabel(wk.phase)}</div>`:''}
@@ -1370,7 +1380,7 @@ function getYearsInPlan(){
   return Array.from(set).sort();
 }
 function aggregateYearData(year){
-  const months = Array.from({length:12},()=>({planKm:0, actualKm:0, kraftPlan:0, kraftDone:0, flexPlan:0, flexDone:0, saunaPlan:0, saunaDone:0}));
+  const months = Array.from({length:12},()=>({planKm:0, actualKm:0, kraftPlan:0, kraftDone:0, flexPlan:0, flexDone:0, saunaDone:0}));
   Object.values(state.units.lauf||{}).forEach(arr=>(arr||[]).forEach(u=>{
     if(!u.date || u.date.slice(0,4)!==year) return;
     const m = parseInt(u.date.slice(5,7),10)-1;
@@ -1392,10 +1402,28 @@ function aggregateYearData(year){
   Object.values(state.units.sauna||{}).forEach(arr=>(arr||[]).forEach(u=>{
     if(!u.date || u.date.slice(0,4)!==year) return;
     const m = parseInt(u.date.slice(5,7),10)-1;
-    months[m].saunaPlan++;
-    if(isUnitDone('sauna',u)) months[m].saunaDone++;
+    if(isUnitDone('sauna',u)) months[m].saunaDone += parseInt(u.gaenge,10)||0;
   }));
   return months;
+}
+function svgBarChartSingle(months, key, color, fmtFn){
+  const W=700, H=232, padL=6, padR=6, padT=22, padB=26;
+  const chartW = W-padL-padR, chartH = H-padT-padB;
+  const groupW = chartW/12;
+  const barW = groupW*0.5;
+  const maxVal = Math.max(1, ...months.map(m=>m[key]));
+  let bars = '';
+  months.forEach((m,i)=>{
+    const gx = padL + i*groupW;
+    const h = (m[key]/maxVal)*chartH;
+    const x = gx + groupW/2 - barW/2;
+    const y = padT+chartH-h;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${color}"></rect>`;
+    if(m[key]>0) bars += `<text x="${(x+barW/2).toFixed(1)}" y="${Math.max(10,y-4).toFixed(1)}" text-anchor="middle" class="chart-val" fill="${color}">${fmtFn(m[key])}</text>`;
+    bars += `<text x="${(gx+groupW/2).toFixed(1)}" y="${H-8}" text-anchor="middle" class="chart-month">${(currentLang==='en'?MONTHS_SHORT_EN:MONTHS_SHORT_DE)[i]}</text>`;
+  });
+  bars += `<line x1="${padL}" y1="${(padT+chartH).toFixed(1)}" x2="${W-padR}" y2="${(padT+chartH).toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="year-chart-svg">${bars}</svg>`;
 }
 function svgBarChart(months, keyA, keyB, colorA, colorB, fmtFn){
   const W=700, H=232, padL=6, padR=6, padT=22, padB=26;
@@ -1460,10 +1488,11 @@ function renderYearCharts(){
     chartLegend('var(--flex)',t('chartGeplant'),'var(--done)',t('chartErledigt')) +
     chartTotals(months,'flexPlan','flexDone','var(--flex)','var(--done)',t('geplantWort'),t('erledigtWort'),fmtCountVal) +
     svgBarChart(months,'flexPlan','flexDone','var(--flex)','var(--done)',fmtCountVal);
+  const saunaTotal = months.reduce((s,m)=>s+m.saunaDone,0);
   document.getElementById('yearChartSauna').innerHTML =
-    chartLegend('var(--sauna)',t('chartGeplant'),'var(--done)',t('chartErledigt')) +
-    chartTotals(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)',t('geplantWort'),t('erledigtWort'),fmtCountVal) +
-    svgBarChart(months,'saunaPlan','saunaDone','var(--sauna)','var(--done)',fmtCountVal);
+    `<div class="chart-legend"><span><span class="legend-dot" style="background:var(--sauna)"></span>${t('chartErledigt')} (${t('gaenge')})</span></div>` +
+    `<div class="chart-total">${t('jahressumme')}: <b style="color:var(--sauna)">${saunaTotal} ${t('gaenge')}</b></div>` +
+    svgBarChartSingle(months,'saunaDone','var(--sauna)',fmtCountVal);
 }
 
 
@@ -1545,6 +1574,8 @@ function buildBulkForm(cat, mode){
   if(mode==='update'){
     html += `<div class="unit-field" style="flex:1 1 100%;"><span class="bulk-warning">${t('bulkWarning')}</span></div>`;
     html += `<div class="unit-field"><span class="date-input-label">${t('abWoche')}</span><select class="bulk-startweek">` +
+      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
+    html += `<div class="unit-field"><span class="date-input-label">${t('updateRangeTo')}</span><select class="bulk-endweek">` +
       weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
     html += bulkFieldHtml(t('anzahlWochen'),'number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
   } else {
@@ -1675,6 +1706,15 @@ document.getElementById('app').addEventListener('click', e=>{
     const formEl = document.querySelector(`.bulk-form[data-cat="${cat}"]`);
     formEl.innerHTML = buildBulkForm(cat, mode);
     formEl.style.display = 'block';
+    if(mode==='update'){
+      const startSel = formEl.querySelector('.bulk-startweek');
+      const endSel = formEl.querySelector('.bulk-endweek');
+      if(startSel && endSel){
+        const startW = parseInt(startSel.value,10);
+        const endOption = weeks.find(w=>w.w === startW+3) || weeks[weeks.length-1];
+        endSel.value = endOption.w;
+      }
+    }
     return;
   }
   const bulkCancel = e.target.closest('.bulk-cancel');
@@ -1689,6 +1729,14 @@ document.getElementById('app').addEventListener('click', e=>{
     const cat = bulkApply.dataset.cat, mode = bulkApply.dataset.mode;
     const formEl = bulkApply.closest('.bulk-form');
     if(mode==='insert') applyBulkInsert(cat, formEl); else applyBulkUpdate(cat, formEl);
+    return;
+  }
+  const jumpBtn = e.target.closest('.jump-current-btn');
+  if(jumpBtn){
+    const cat = jumpBtn.dataset.cat;
+    const wk = weeks[getCurrentWeekIndex()];
+    const target = document.getElementById('weekcard-'+cat+'-'+wk.w);
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
     return;
   }
   const tab = e.target.closest('.tab-btn');
@@ -1706,6 +1754,18 @@ document.getElementById('app').addEventListener('input', e=>{
   }
 });
 document.getElementById('app').addEventListener('change', e=>{
+  if(e.target.classList.contains('bulk-startweek') || e.target.classList.contains('bulk-endweek')){
+    const formEl = e.target.closest('.bulk-form');
+    const startSel = formEl.querySelector('.bulk-startweek');
+    const endSel = formEl.querySelector('.bulk-endweek');
+    const countInput = formEl.querySelector('.bulk-count');
+    if(startSel && endSel && countInput){
+      const start = parseInt(startSel.value,10), end = parseInt(endSel.value,10);
+      const n = end - start + 1;
+      if(n >= 1) countInput.value = n;
+    }
+    return;
+  }
   if(e.target.classList.contains('bulk-wd')){
     const formEl = e.target.closest('.bulk-form');
     const cat = formEl.dataset.cat;
