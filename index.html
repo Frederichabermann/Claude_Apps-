@@ -25,6 +25,8 @@
     --flex-dim:rgba(140,122,224,.16);
     --sauna:#e0a526;
     --sauna-dim:rgba(224,165,38,.16);
+    --gewicht:#4f8fd6;
+    --gewicht-dim:rgba(79,143,214,.16);
     --under:#d6453a;
     --over:#e0a526;
     --done:#8fd6a0;
@@ -74,6 +76,8 @@
   .lane-flex div.partial{background:var(--flex-dim);}
   .lane-sauna div.full{background:var(--sauna);}
   .lane-sauna div.partial{background:var(--sauna-dim);}
+  .lane-gewicht div.full{background:var(--gewicht);}
+  .lane-gewicht div.partial{background:var(--gewicht-dim);}
   .week-marker{position:absolute;top:-9px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text);transform:translateX(-50%);}
   .lap-labels{display:flex;justify-content:space-between;color:var(--text-faint);font-size:10px;margin-top:4px;font-family:'JetBrains Mono',monospace;}
 
@@ -86,6 +90,7 @@
   .tab-btn[data-tab="kraft"].active{background:var(--kraft);border-color:var(--kraft);}
   .tab-btn[data-tab="flex"].active{background:var(--flex);border-color:var(--flex);}
   .tab-btn[data-tab="sauna"].active{background:var(--sauna);border-color:var(--sauna);}
+  .tab-btn[data-tab="gewicht"].active{background:var(--gewicht);border-color:var(--gewicht);}
   .tab-btn[data-tab="uebersicht"].active{background:var(--text);border-color:var(--text);}
 
   .panel{display:none;}
@@ -213,6 +218,7 @@
   .stat-card.kraft .pct{color:var(--kraft);}
   .stat-card.flex .pct{color:var(--flex);}
   .stat-card.sauna .pct{color:var(--sauna);}
+  .stat-card.gewicht .pct{color:var(--gewicht);}
   .stat-card.gesamt .pct{color:var(--text);}
   .bar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden;}
   .bar div{height:100%;}
@@ -220,6 +226,7 @@
   .stat-card.kraft .bar div{background:var(--kraft);}
   .stat-card.flex .bar div{background:var(--flex);}
   .stat-card.sauna .bar div{background:var(--sauna);}
+  .stat-card.gewicht .bar div{background:var(--gewicht);}
   .stat-card.gesamt .bar div{background:var(--text);}
 
   .section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;margin:26px 0 10px;color:var(--text-dim);}
@@ -286,6 +293,7 @@
       <div class="lane lane-kraft" id="laneKraft"></div>
       <div class="lane lane-flex" id="laneFlex"></div>
       <div class="lane lane-sauna" id="laneSauna"></div>
+      <div class="lane lane-gewicht" id="laneGewicht"></div>
       <div class="week-marker" id="weekMarker"></div>
     </div>
     <div class="lap-labels" id="lapLabels"></div>
@@ -344,6 +352,10 @@
     <button class="tab-btn" data-tab="sauna">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3c-1 1.3-1 2 0 3.3S10 8.7 9 10"></path><path d="M14 3c-1 1.3-1 2 0 3.3S15 8.7 14 10"></path><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3z"></path><path d="M4 14H2.5" ></path><path d="M21.5 14H20"></path></svg>
       <span data-i18n="tabSauna">Sauna</span>
+    </button>
+    <button class="tab-btn" data-tab="gewicht">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="12" cy="13" r="1"></circle><path d="M12 13l3-3"></path><path d="M7 3v3"></path><path d="M17 3v3"></path></svg>
+      <span data-i18n="tabGewicht">Gewicht</span>
     </button>
   </nav>
 
@@ -418,6 +430,19 @@
     <div id="saunaList"></div>
   </section>
 
+  <section class="panel" id="panel-gewicht">
+    <button class="jump-current-btn" data-cat="gewicht" data-i18n="jumpToCurrent">↓ Zur aktuellen Woche</button>
+    <div class="legend" data-i18n="legendGewicht">Datum, Gewicht und Notiz sind frei anpassbar.</div>
+    <div class="bulk-box">
+      <div class="bulk-triggers">
+        <button class="bulk-trigger" data-cat="gewicht" data-mode="insert" data-i18n="bulkInsert">+ Wochen einfügen</button>
+        <button class="bulk-trigger" data-cat="gewicht" data-mode="update" data-i18n="bulkUpdate">+ Wochen aktualisieren</button>
+      </div>
+      <div class="bulk-form" data-cat="gewicht" style="display:none;"></div>
+    </div>
+    <div id="gewichtList"></div>
+  </section>
+
   <section class="panel" id="panel-uebersicht">
     <div class="scope-row">
       <span class="date-input-label" style="width:auto;" id="zeitraumLabel" data-i18n="zeitraum">Zeitraum</span>
@@ -447,6 +472,10 @@
     <div class="year-chart-block">
       <div class="year-chart-title" id="chartTitleSauna" data-i18n="chartTitleSauna">Sauna — Erledigte Gänge</div>
       <div id="yearChartSauna"></div>
+    </div>
+    <div class="year-chart-block">
+      <div class="year-chart-title" id="chartTitleGewicht" data-i18n="chartTitleGewicht">Gewicht — Ø Gewicht pro Monat</div>
+      <div id="yearChartGewicht"></div>
     </div>
 
     <div class="section-title" id="wochenfortschrittTitle" data-i18n="wochenfortschritt">Wochenfortschritt in %</div>
@@ -517,6 +546,7 @@ const I18N = {
     tabKraft: 'Krafttraining',
     tabFlex: 'Flexibles Training',
     tabSauna: 'Sauna',
+    tabGewicht: 'Gewicht',
     tabUebersicht: 'Übersicht',
     laufLegendToggle: 'Intensitätsskala & Farblegende',
     uploadDescToggle: 'Details & Format',
@@ -533,6 +563,7 @@ const I18N = {
     legendKraft: 'Datum, Fokus und Anzahl der Einheiten pro Woche sind frei anpassbar.',
     legendFlex: 'Datum, Training und Anzahl der Einheiten pro Woche sind frei anpassbar.',
     legendSauna: 'Datum und Anzahl der Einheiten pro Woche sind frei anpassbar.',
+    legendGewicht: 'Datum, Gewicht und Notiz sind frei anpassbar.',
     zeitraum: 'Zeitraum',
     jahr: 'Jahr',
     dieseWoche: 'Diese Woche',
@@ -542,6 +573,8 @@ const I18N = {
     chartTitleKraft: 'Krafttraining — Geplant vs. Erledigt',
     chartTitleFlex: 'Flexibles Training — Geplant vs. Erledigt',
     chartTitleSauna: 'Sauna — Erledigte Gänge',
+    chartTitleGewicht: 'Gewicht — Ø Gewicht pro Monat',
+    gewichtAvgLabel: 'Ø Gewicht (kg)',
     wochenfortschritt: 'Wochenfortschritt in %',
     footer: 'Änderungen werden automatisch im Browser gespeichert (localStorage) und bleiben nach dem Neuladen erhalten — nur auf diesem Gerät/Browser, außer du richtest oben den optionalen GitHub-Gist-Sync ein.',
     gesamtAlleWochen: 'Gesamt (alle Wochen)',
@@ -556,6 +589,7 @@ const I18N = {
     erledigt: 'Erledigt',
     erledigtFrage: 'Erledigt?',
     erledigtGaenge: 'Erledigt (Gänge)',
+    gewicht: 'Gewicht',
     datum: 'Datum',
     addEinheit: '+ Einheit',
     removeEinheit: 'Einheit entfernen',
@@ -578,6 +612,7 @@ const I18N = {
     chartGeplant: 'Geplant',
     chartErledigt: 'Erledigt',
     jahressumme: 'Jahressumme',
+    jahresdurchschnitt: 'Ø im Jahr',
     kmZiel: 'km Ziel',
     kmGelaufen: 'km gelaufen',
     geplantWort: 'geplant',
@@ -628,6 +663,7 @@ const I18N = {
     tabKraft: 'Strength Training',
     tabFlex: 'Flexible Training',
     tabSauna: 'Sauna',
+    tabGewicht: 'Weight',
     tabUebersicht: 'Overview',
     laufLegendToggle: 'Intensity scale & color legend',
     uploadDescToggle: 'Details & format',
@@ -644,6 +680,7 @@ const I18N = {
     legendKraft: 'Date, focus, and number of sessions per week are fully customizable.',
     legendFlex: 'Date, activity, and number of sessions per week are fully customizable.',
     legendSauna: 'Date and number of sessions per week are fully customizable.',
+    legendGewicht: 'Date, weight and note are fully customizable.',
     zeitraum: 'Period',
     jahr: 'Year',
     dieseWoche: 'This week',
@@ -653,6 +690,8 @@ const I18N = {
     chartTitleKraft: 'Strength Training — Planned vs. Done',
     chartTitleFlex: 'Flexible Training — Planned vs. Done',
     chartTitleSauna: 'Sauna — Completed rounds',
+    chartTitleGewicht: 'Weight — Avg. weight per month',
+    gewichtAvgLabel: 'Avg. weight (kg)',
     wochenfortschritt: 'Weekly progress in %',
     footer: 'Changes are saved automatically in the browser (localStorage) and persist after reloading — only on this device/browser, unless you set up the optional GitHub Gist sync above.',
     gesamtAlleWochen: 'Total (all weeks)',
@@ -667,6 +706,7 @@ const I18N = {
     erledigt: 'Done',
     erledigtFrage: 'Done?',
     erledigtGaenge: 'Completed (rounds)',
+    gewicht: 'Weight',
     datum: 'Date',
     addEinheit: '+ Session',
     removeEinheit: 'Remove session',
@@ -689,6 +729,7 @@ const I18N = {
     chartGeplant: 'Planned',
     chartErledigt: 'Done',
     jahressumme: 'Yearly total',
+    jahresdurchschnitt: 'Yearly average',
     kmZiel: 'km target',
     kmGelaufen: 'km completed',
     geplantWort: 'planned',
@@ -791,15 +832,15 @@ function updateDateRangeLabel(){
 }
 
 // ---------------- State (flexible per-week units) ----------------
-let state = { units: { lauf:{}, kraft:{}, flex:{}, sauna:{} } };
+let state = { units: { lauf:{}, kraft:{}, flex:{}, sauna:{}, gewicht:{} } };
 const STORAGE_KEY = "trainingsplan-2026-state-v3";
 
 function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function oldFlatEntry(cat,key){ return (state[cat] && state[cat][key]) ? state[cat][key] : null; }
 
 function ensureUnits(){
-  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
-  ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{},gewicht:{}};
+  ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
   let changed = false;
   weeks.forEach(wk=>{
     if(!state.units.lauf[wk.w]){
@@ -834,7 +875,10 @@ function ensureUnits(){
     if(!state.units.flex[wk.w]){
       state.units.flex[wk.w] = [];
     }
-    ['lauf','kraft','flex','sauna'].forEach(cat=>{
+    if(!state.units.gewicht[wk.w]){
+      state.units.gewicht[wk.w] = [];
+    }
+    ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{
       const oExtra = oldFlatEntry(cat, wk.w+'-extra');
       if(oExtra && oExtra.desc){
         const arr = state.units[cat][wk.w];
@@ -864,6 +908,7 @@ function ensureUnits(){
 function isUnitDone(cat, u){
   if(cat==='lauf') return u.actualKm !== '' && u.actualKm !== undefined && u.actualKm !== null && !isNaN(parseFloat(u.actualKm));
   if(cat==='sauna') return u.gaenge !== '' && u.gaenge !== undefined && u.gaenge !== null && parseInt(u.gaenge,10) > 0;
+  if(cat==='gewicht') return u.gewicht !== '' && u.gewicht !== undefined && u.gewicht !== null && !isNaN(parseFloat(u.gewicht));
   return !!u.done;
 }
 
@@ -874,7 +919,7 @@ function isUnitDone(cat, u){
 // its real date, so it gets placed back under the week whose Di–So range contains it.
 function rebuildUnitsFromDates(){
   let changed = false;
-  ['lauf','kraft','flex','sauna'].forEach(cat=>{
+  ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{
     const all = [];
     Object.values(state.units[cat] || {}).forEach(arr=>{ (arr||[]).forEach(u=>all.push(u)); });
     const byWeek = {};
@@ -908,8 +953,8 @@ async function loadState(){
       if(old){ state = JSON.parse(old); }
     }
   }catch(e){ /* no previous data, or storage unavailable */ }
-  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
-  ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+  if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{},gewicht:{}};
+  ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
   if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
 
   let didFix = false;
@@ -1022,8 +1067,8 @@ async function pullFromGist(silent){
     }
 
     state = parsed;
-    if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{}};
-    ['lauf','kraft','flex','sauna'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
+    if(!state.units) state.units = {lauf:{},kraft:{},flex:{},sauna:{},gewicht:{}};
+    ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{ if(!state.units[cat]) state.units[cat]={}; });
     if(state.windowEnd){ WINDOW_END = state.windowEnd; weeks = buildWeeks(); }
     ensureUnits();
     saveState();
@@ -1052,6 +1097,7 @@ function addUnit(cat,week){
   let newUnit;
   if(cat==='lauf') newUnit = {id, date:wk.mi, planKm:'', actualKm:'', note:''};
   else if(cat==='kraft' || cat==='flex') newUnit = {id, date:wk.di, note:'', done:false, doneDate:''};
+  else if(cat==='gewicht') newUnit = {id, date:wk.di, gewicht:'', doneDate:'', note:''};
   else newUnit = {id, date:wk.di, gaenge:'', doneDate:''};
   state.units[cat][week].push(newUnit);
   saveState(); renderAll();
@@ -1246,6 +1292,16 @@ function flexUnitRow(wk,u){
   </div>`;
 }
 
+function gewichtUnitRow(wk,u){
+  return `<div class="unit-row gewicht ${isUnitDone('gewicht',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="gewicht" data-week="${wk.w}" data-id="${u.id}">
+    <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
+    <div class="unit-field"><span class="date-input-label">${t('gewicht')}</span><input type="number" min="0" step="0.1" class="u-gewicht" value="${u.gewicht||''}" placeholder="kg"></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
+    <button class="u-remove" title="${t('removeEinheit')}">✕</button>
+  </div>`;
+}
+
 function renderCategory(cat, currentIdx, rowFn){
   return weeks.map((wk,i)=>{
     const units = state.units[cat][wk.w] || [];
@@ -1264,6 +1320,7 @@ function renderLauf(currentIdx){ return renderCategory('lauf', currentIdx, laufU
 function renderKraft(currentIdx){ return renderCategory('kraft', currentIdx, kraftUnitRow); }
 function renderFlex(currentIdx){ return renderCategory('flex', currentIdx, flexUnitRow); }
 function renderSauna(currentIdx){ return renderCategory('sauna', currentIdx, saunaUnitRow); }
+function renderGewicht(currentIdx){ return renderCategory('gewicht', currentIdx, gewichtUnitRow); }
 
 // ---------------- Stats ----------------
 let statScope = null; // 'all' or a week number string
@@ -1291,14 +1348,16 @@ function renderStats(){
   const kraft = scoped('kraft');
   const flex = scoped('flex');
   const sauna = scoped('sauna');
-  const totalDone = lauf.done+kraft.done+flex.done+sauna.done;
-  const totalAll = lauf.total+kraft.total+flex.total+sauna.total;
+  const gewicht = scoped('gewicht');
+  const totalDone = lauf.done+kraft.done+flex.done+sauna.done+gewicht.done;
+  const totalAll = lauf.total+kraft.total+flex.total+sauna.total+gewicht.total;
   const pct = (d,t)=> t? Math.round(d/t*100):100;
   const cards = [
     {cls:'lauf', label:t('tabLauf'), d:lauf.done, t:lauf.total},
     {cls:'kraft', label:t('tabKraft'), d:kraft.done, t:kraft.total},
     {cls:'flex', label:t('tabFlex'), d:flex.done, t:flex.total},
     {cls:'sauna', label:t('tabSauna'), d:sauna.done, t:sauna.total},
+    {cls:'gewicht', label:t('tabGewicht'), d:gewicht.done, t:gewicht.total},
     {cls:'gesamt', label:t('gesamt'), d:totalDone, t:totalAll},
   ];
   document.getElementById('statGrid').innerHTML = cards.map(c=>`
@@ -1309,17 +1368,19 @@ function renderStats(){
       <div class="bar"><div style="width:${pct(c.d,c.t)}%"></div></div>
     </div>`).join('');
 }
-const ALL_CATS = ['lauf','kraft','flex','sauna'];
+const ALL_CATS = ['lauf','kraft','flex','sauna','gewicht'];
 const CATEGORY_ICON_SVG = {
   lauf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="5" r="2"></circle><path d="M13 8l-3 3"></path><path d="M10 11l3 3-1 5"></path><path d="M10 11l-3 2 1 4"></path><path d="M13 8l4 1-1 3"></path><path d="M13 8l-3-1"></path></svg>',
   kraft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6"></path><path d="M2 8v8"></path><path d="M20 9v6"></path><path d="M22 8v8"></path><path d="M6 12h12"></path></svg>',
   flex: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8l3 2.2-1.1 3.6h-3.8L9 10.2z"></path><path d="M12 8V4.5"></path><path d="M15 10.2l3.3-1.6"></path><path d="M13.9 13.8l2 3.4"></path><path d="M10.1 13.8l-2 3.4"></path><path d="M9 10.2l-3.3-1.6"></path></svg>',
-  sauna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3c-1 1.3-1 2 0 3.3S10 8.7 9 10"></path><path d="M14 3c-1 1.3-1 2 0 3.3S15 8.7 14 10"></path><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3z"></path><path d="M4 14H2.5"></path><path d="M21.5 14H20"></path></svg>'
+  sauna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3c-1 1.3-1 2 0 3.3S10 8.7 9 10"></path><path d="M14 3c-1 1.3-1 2 0 3.3S15 8.7 14 10"></path><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3z"></path><path d="M4 14H2.5"></path><path d="M21.5 14H20"></path></svg>',
+  gewicht: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="12" cy="13" r="1"></circle><path d="M12 13l3-3"></path><path d="M7 3v3"></path><path d="M17 3v3"></path></svg>'
 };
 function unitRowFor(cat, wk, u){
   if(cat==='lauf') return laufUnitRow(wk,u);
   if(cat==='kraft') return kraftUnitRow(wk,u);
   if(cat==='flex') return flexUnitRow(wk,u);
+  if(cat==='gewicht') return gewichtUnitRow(wk,u);
   return saunaUnitRow(wk,u);
 }
 function renderSpotlight(currentIdx){
@@ -1347,12 +1408,13 @@ function renderLapTrack(currentIdx){
     if(!units.length) return 0;
     return units.filter(u=>isUnitDone(cat,u)).length / units.length;
   });
-  const laufFrac = frac('lauf'), kraftFrac = frac('kraft'), flexFrac = frac('flex'), saunaFrac = frac('sauna');
+  const laufFrac = frac('lauf'), kraftFrac = frac('kraft'), flexFrac = frac('flex'), saunaFrac = frac('sauna'), gewichtFrac = frac('gewicht');
   const cls = f => f>=1 ? 'full' : (f>0 ? 'partial' : '');
   document.getElementById('laneLauf').innerHTML = laufFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('laneKraft').innerHTML = kraftFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('laneFlex').innerHTML = flexFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('laneSauna').innerHTML = saunaFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
+  document.getElementById('laneGewicht').innerHTML = gewichtFrac.map(f=>`<div class="${cls(f)}"></div>`).join('');
   document.getElementById('weekMarker').style.left = ((currentIdx+0.5)/weeks.length*100)+'%';
   document.getElementById('lapLabels').innerHTML = `<span>1</span><span>${Math.round(weeks.length/2)}</span><span>${weeks.length}</span>`;
 }
@@ -1373,14 +1435,14 @@ const MONTHS_SHORT_DE = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep',
 
 function getYearsInPlan(){
   const set = new Set();
-  ['lauf','kraft','flex','sauna'].forEach(cat=>{
+  ['lauf','kraft','flex','sauna','gewicht'].forEach(cat=>{
     Object.values(state.units[cat]||{}).forEach(arr=>(arr||[]).forEach(u=>{ if(u.date) set.add(u.date.slice(0,4)); }));
   });
   if(!set.size) set.add(String(new Date().getFullYear()));
   return Array.from(set).sort();
 }
 function aggregateYearData(year){
-  const months = Array.from({length:12},()=>({planKm:0, actualKm:0, kraftPlan:0, kraftDone:0, flexPlan:0, flexDone:0, saunaDone:0}));
+  const months = Array.from({length:12},()=>({planKm:0, actualKm:0, kraftPlan:0, kraftDone:0, flexPlan:0, flexDone:0, saunaDone:0, gewichtSum:0, gewichtCount:0, gewichtAvg:0}));
   Object.values(state.units.lauf||{}).forEach(arr=>(arr||[]).forEach(u=>{
     if(!u.date || u.date.slice(0,4)!==year) return;
     const m = parseInt(u.date.slice(5,7),10)-1;
@@ -1404,6 +1466,15 @@ function aggregateYearData(year){
     const m = parseInt(u.date.slice(5,7),10)-1;
     if(isUnitDone('sauna',u)) months[m].saunaDone += parseInt(u.gaenge,10)||0;
   }));
+  Object.values(state.units.gewicht||{}).forEach(arr=>(arr||[]).forEach(u=>{
+    if(!u.date || u.date.slice(0,4)!==year) return;
+    const m = parseInt(u.date.slice(5,7),10)-1;
+    if(isUnitDone('gewicht',u)){
+      months[m].gewichtSum += parseFloat(u.gewicht)||0;
+      months[m].gewichtCount++;
+    }
+  }));
+  months.forEach(mo=>{ mo.gewichtAvg = mo.gewichtCount ? Math.round((mo.gewichtSum/mo.gewichtCount)*10)/10 : 0; });
   return months;
 }
 function svgBarChartSingle(months, key, color, fmtFn){
@@ -1493,6 +1564,13 @@ function renderYearCharts(){
     `<div class="chart-legend"><span><span class="legend-dot" style="background:var(--sauna)"></span>${t('chartErledigt')} (${t('gaenge')})</span></div>` +
     `<div class="chart-total">${t('jahressumme')}: <b style="color:var(--sauna)">${saunaTotal} ${t('gaenge')}</b></div>` +
     svgBarChartSingle(months,'saunaDone','var(--sauna)',fmtCountVal);
+  const gewichtSumAll = months.reduce((s,m)=>s+m.gewichtSum,0);
+  const gewichtCountAll = months.reduce((s,m)=>s+m.gewichtCount,0);
+  const gewichtAvgAll = gewichtCountAll ? Math.round((gewichtSumAll/gewichtCountAll)*10)/10 : 0;
+  document.getElementById('yearChartGewicht').innerHTML =
+    `<div class="chart-legend"><span><span class="legend-dot" style="background:var(--gewicht)"></span>${t('gewichtAvgLabel')}</span></div>` +
+    `<div class="chart-total">${t('jahresdurchschnitt')}: <b style="color:var(--gewicht)">${fmtKmVal(gewichtAvgAll)} kg</b></div>` +
+    svgBarChartSingle(months,'gewichtAvg','var(--gewicht)',fmtKmVal);
 }
 
 
@@ -1509,6 +1587,7 @@ function renderAll(){
   document.getElementById('kraftList').innerHTML = renderKraft(currentIdx);
   document.getElementById('flexList').innerHTML = renderFlex(currentIdx);
   document.getElementById('saunaList').innerHTML = renderSauna(currentIdx);
+  document.getElementById('gewichtList').innerHTML = renderGewicht(currentIdx);
   renderStats();
   renderSpotlight(currentIdx);
   renderLapTrack(currentIdx);
@@ -1539,6 +1618,9 @@ function bulkDayBlockHtml(cat, mode, day, saved){
     fields = bulkFieldHtml(t('uebungFokus'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
   } else if(cat==='flex'){
     fields = bulkFieldHtml(t('training'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Yoga, Schwimmen',value:esc(saved.fokus)});
+  } else if(cat==='gewicht'){
+    fields = bulkFieldHtml(t('gewicht'),'number',`bulk-gewicht-${day}`,{min:'0',step:'0.1',placeholder:'kg',value:esc(saved.gewicht)});
+    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
   } else {
     fields = bulkFieldHtml(t('gaenge'),'number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
     if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
@@ -1560,6 +1642,11 @@ function captureBulkDayValues(cat, formEl){
       };
     } else if(cat==='kraft' || cat==='flex'){
       stored[day] = { fokus: (formEl.querySelector(`.bulk-fokus-${day}`)||{}).value || '' };
+    } else if(cat==='gewicht'){
+      stored[day] = {
+        gewicht: (formEl.querySelector(`.bulk-gewicht-${day}`)||{}).value || '',
+        notiz: (formEl.querySelector(`.bulk-notiz-${day}`)||{}).value || ''
+      };
     } else {
       stored[day] = {
         gaenge: (formEl.querySelector(`.bulk-gaenge-${day}`)||{}).value || '',
@@ -1605,6 +1692,12 @@ function readBulkContentForDay(cat, formEl, day){
     const fokusEl = formEl.querySelector(`.bulk-fokus-${day}`);
     return {fokus: fokusEl?fokusEl.value:''};
   }
+  if(cat==='gewicht'){
+    const gewichtEl = formEl.querySelector(`.bulk-gewicht-${day}`);
+    const notizEl = formEl.querySelector(`.bulk-notiz-${day}`);
+    const gewichtRaw = gewichtEl ? gewichtEl.value : '';
+    return {gewicht: gewichtRaw===''?'':parseFloat(gewichtRaw.replace(',','.')), notiz: notizEl ? notizEl.value : ''};
+  }
   const gaengeEl = formEl.querySelector(`.bulk-gaenge-${day}`);
   const notizEl = formEl.querySelector(`.bulk-notiz-${day}`);
   const gaengeRaw = gaengeEl ? gaengeEl.value : '';
@@ -1613,11 +1706,13 @@ function readBulkContentForDay(cat, formEl, day){
 function buildBulkUnit(cat, date, content){
   if(cat==='lauf') return {id:uid(), date, planKm:content.zielKm, actualKm:'', doneDate:'', note:content.notiz||''};
   if(cat==='kraft' || cat==='flex') return {id:uid(), date, note:content.fokus||'', done:false, doneDate:''};
+  if(cat==='gewicht') return {id:uid(), date, gewicht:content.gewicht, doneDate:'', note:content.notiz||''};
   return {id:uid(), date, gaenge:content.gaenge, doneDate:'', note:content.notiz||''};
 }
 function applyBulkContentToUnit(cat, unit, content){
   if(cat==='lauf'){ unit.planKm = content.zielKm; unit.note = content.notiz||''; }
   else if(cat==='kraft' || cat==='flex'){ unit.note = content.fokus||''; }
+  else if(cat==='gewicht'){ unit.gewicht = content.gewicht; if(content.notiz!==undefined) unit.note = content.notiz||''; }
   else { unit.gaenge = content.gaenge; if(content.notiz!==undefined) unit.note = content.notiz||''; }
 }
 function showBulkStatus(formEl, msg, isError){
@@ -1807,6 +1902,12 @@ document.getElementById('app').addEventListener('change', e=>{
     const arr = state.units[cat][week]; const u = arr && arr.find(x=>x.id===id);
     const patch = {gaenge:val};
     if(u && val!=='' && parseInt(val,10)>0 && !u.doneDate) patch.doneDate = todayISO();
+    updateUnit(cat,week,id,patch);
+  }
+  else if(e.target.classList.contains('u-gewicht')){
+    const arr = state.units[cat][week]; const u = arr && arr.find(x=>x.id===id);
+    const patch = {gewicht:val};
+    if(u && val!=='' && !isNaN(parseFloat(val)) && !u.doneDate) patch.doneDate = todayISO();
     updateUnit(cat,week,id,patch);
   }
   else if(e.target.classList.contains('u-donedate')) updateUnit(cat,week,id,{doneDate:val});
