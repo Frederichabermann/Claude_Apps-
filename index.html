@@ -1270,7 +1270,7 @@ let statScope = null; // 'all' or a week number string
 function buildStatScopeOptions(){
   const sel = document.getElementById('statScope');
   sel.innerHTML = `<option value="all">${t('gesamtAlleWochen')}</option>` +
-    weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}–${fmt(wk.so)}</option>`).join('');
+    weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mo)}–${fmt(wk.so)}</option>`).join('');
 }
 function countDone(cat){
   let done=0, total=0;
@@ -1574,9 +1574,9 @@ function buildBulkForm(cat, mode){
   if(mode==='update'){
     html += `<div class="unit-field" style="flex:1 1 100%;"><span class="bulk-warning">${t('bulkWarning')}</span></div>`;
     html += `<div class="unit-field"><span class="date-input-label">${t('abWoche')}</span><select class="bulk-startweek">` +
-      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
+      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mo)}</option>`).join('') + `</select></div>`;
     html += `<div class="unit-field"><span class="date-input-label">${t('updateRangeTo')}</span><select class="bulk-endweek">` +
-      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mi)}</option>`).join('') + `</select></div>`;
+      weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mo)}</option>`).join('') + `</select></div>`;
     html += bulkFieldHtml(t('anzahlWochen'),'number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
   } else {
     html += bulkFieldHtml(t('anzahlNeueWochen'),'number','bulk-count',{min:'1',value:'52',style:'width:70px;'});
@@ -1754,15 +1754,29 @@ document.getElementById('app').addEventListener('input', e=>{
   }
 });
 document.getElementById('app').addEventListener('change', e=>{
-  if(e.target.classList.contains('bulk-startweek') || e.target.classList.contains('bulk-endweek')){
+  if(e.target.classList.contains('bulk-startweek') || e.target.classList.contains('bulk-endweek') || e.target.classList.contains('bulk-count')){
     const formEl = e.target.closest('.bulk-form');
     const startSel = formEl.querySelector('.bulk-startweek');
     const endSel = formEl.querySelector('.bulk-endweek');
     const countInput = formEl.querySelector('.bulk-count');
     if(startSel && endSel && countInput){
-      const start = parseInt(startSel.value,10), end = parseInt(endSel.value,10);
-      const n = end - start + 1;
-      if(n >= 1) countInput.value = n;
+      const maxWeek = weeks[weeks.length-1].w;
+      if(e.target.classList.contains('bulk-count')){
+        const start = parseInt(startSel.value,10);
+        let count = parseInt(countInput.value,10);
+        if(count >= 1){
+          let end = start + count - 1;
+          if(end > maxWeek){ end = maxWeek; countInput.value = end - start + 1; }
+          if(weeks.find(w=>w.w===end)) endSel.value = end;
+        }
+      } else {
+        let start = parseInt(startSel.value,10), end = parseInt(endSel.value,10);
+        if(end < start){
+          if(e.target.classList.contains('bulk-startweek')){ end = start; endSel.value = end; }
+          else { start = end; startSel.value = start; }
+        }
+        countInput.value = end - start + 1;
+      }
     }
     return;
   }
