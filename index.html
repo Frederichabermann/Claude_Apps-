@@ -1088,18 +1088,37 @@ function updateUnit(cat,week,id,patch){
   const u = arr.find(x=>x.id===id);
   if(!u) return;
   Object.assign(u,patch);
+  if(patch && Object.prototype.hasOwnProperty.call(patch,'date') && u.date){
+    relocateUnitIfNeeded(cat, week, u);
+  }
   saveState(); renderAll();
+}
+function relocateUnitIfNeeded(cat, week, u){
+  const currentWk = weeks.find(w=>String(w.w)===String(week));
+  if(currentWk && u.date >= currentWk.mo && u.date <= currentWk.so) return; // still in same week
+  const targetWk = findWeekForDate(u.date);
+  if(!targetWk) return; // date outside covered year(s); leave unit where it is
+  if(String(targetWk.w) === String(week)) return;
+  const oldArr = state.units[cat][week];
+  if(oldArr){
+    const idx = oldArr.findIndex(x=>x.id===u.id);
+    if(idx>=0) oldArr.splice(idx,1);
+  }
+  if(!state.units[cat][targetWk.w]) state.units[cat][targetWk.w] = [];
+  state.units[cat][targetWk.w].push(u);
 }
 function addUnit(cat,week){
   const wk = weeks.find(w=>String(w.w)===String(week));
   if(!wk) return;
   const id = uid();
+  const today = todayISO();
   let newUnit;
-  if(cat==='lauf') newUnit = {id, date:wk.mi, planKm:'', actualKm:'', note:''};
-  else if(cat==='kraft' || cat==='flex') newUnit = {id, date:wk.di, note:'', done:false, doneDate:''};
-  else if(cat==='gewicht') newUnit = {id, date:wk.di, gewicht:'', doneDate:'', note:''};
-  else newUnit = {id, date:wk.di, gaenge:'', doneDate:''};
+  if(cat==='lauf') newUnit = {id, date:today, planKm:'', actualKm:'', note:''};
+  else if(cat==='kraft' || cat==='flex') newUnit = {id, date:today, note:'', done:false, doneDate:''};
+  else if(cat==='gewicht') newUnit = {id, date:today, gewicht:'', doneDate:'', note:''};
+  else newUnit = {id, date:today, gaenge:'', doneDate:''};
   state.units[cat][week].push(newUnit);
+  relocateUnitIfNeeded(cat, week, newUnit);
   saveState(); renderAll();
 }
 function removeUnit(cat,week,id){
