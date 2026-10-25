@@ -124,10 +124,19 @@
   .week-card-head .phase-tag{margin-top:0;}
   .u-add{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:5px 12px;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;}
   .u-add:hover{color:var(--text);border-color:var(--text-dim);}
+  .spot-add-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .spot-add-row select{background:var(--bg-card-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:13px;}
+  .spot-add-row .u-add{margin-left:0;}
   .unit-list{display:flex;flex-direction:column;gap:8px;}
   .unit-row{background:var(--bg-card-2);border-radius:8px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid transparent;}
   .unit-row.status-under{background:rgba(214,69,58,.14);border-color:rgba(214,69,58,.45);}
   .unit-row.status-over{background:rgba(143,214,160,.16);border-color:rgba(143,214,160,.5);}
+  .unit-row[data-cat=lauf].status-over{background:var(--lauf-dim);border-color:color-mix(in srgb, var(--lauf) 55%, transparent);}
+  .unit-row[data-cat=kraft].status-over{background:var(--kraft-dim);border-color:color-mix(in srgb, var(--kraft) 55%, transparent);}
+  .unit-row[data-cat=flex].status-over{background:var(--flex-dim);border-color:color-mix(in srgb, var(--flex) 55%, transparent);}
+  .unit-row[data-cat=sauna].status-over{background:var(--sauna-dim);border-color:color-mix(in srgb, var(--sauna) 55%, transparent);}
+  .unit-row[data-cat=gewicht].status-over{background:var(--gewicht-dim);border-color:color-mix(in srgb, var(--gewicht) 55%, transparent);}
+  .bulk-biweekly-label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;padding-bottom:6px;}
   .unit-row.is-today{outline:2px solid var(--text);outline-offset:-1px;}
   .unit-field{display:flex;flex-direction:column;gap:2px;}
   .unit-field input[type=date], .unit-field input[type=number], .unit-field input[type=text]{background:var(--bg-card);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:5px 7px;}
@@ -600,6 +609,7 @@ const I18N = {
     phaseErhaltung: 'Erhaltung',
     abWoche: 'Ab Woche',
     anzahlWochen: 'Anzahl Wochen',
+    biweekly: 'Zweiwöchentlich (jede 2. Woche)',
     anzahlNeueWochen: 'Anzahl neuer Wochen',
     wochentage: 'Wochentage',
     uebernehmen: 'Übernehmen',
@@ -717,6 +727,7 @@ const I18N = {
     phaseErhaltung: 'Maintenance',
     abWoche: 'From week',
     anzahlWochen: 'Number of weeks',
+    biweekly: 'Biweekly (every 2nd week)',
     anzahlNeueWochen: 'Number of new weeks',
     wochentage: 'Weekdays',
     uebernehmen: 'Apply',
@@ -1107,18 +1118,21 @@ function relocateUnitIfNeeded(cat, week, u){
   if(!state.units[cat][targetWk.w]) state.units[cat][targetWk.w] = [];
   state.units[cat][targetWk.w].push(u);
 }
-function addUnit(cat,week){
+function addUnit(cat,week,keepInWeek){
   const wk = weeks.find(w=>String(w.w)===String(week));
   if(!wk) return;
   const id = uid();
-  const today = todayISO();
+  let today = todayISO();
+  // Aus der Übersicht (gewählte Woche): Einheit bleibt in dieser Woche; heute, falls heute darin liegt, sonst Montag
+  if(keepInWeek && !(today >= wk.mo && today <= wk.so)) today = wk.mo;
   let newUnit;
   if(cat==='lauf') newUnit = {id, date:today, planKm:'', actualKm:'', note:''};
   else if(cat==='kraft' || cat==='flex') newUnit = {id, date:today, note:'', done:false, doneDate:''};
   else if(cat==='gewicht') newUnit = {id, date:today, gewicht:'', doneDate:'', note:''};
   else newUnit = {id, date:today, gaenge:'', doneDate:''};
+  if(!state.units[cat][week]) state.units[cat][week] = [];
   state.units[cat][week].push(newUnit);
-  relocateUnitIfNeeded(cat, week, newUnit);
+  if(!keepInWeek) relocateUnitIfNeeded(cat, week, newUnit);
   saveState(); renderAll();
 }
 function removeUnit(cat,week,id){
@@ -1402,6 +1416,7 @@ function unitRowFor(cat, wk, u){
   if(cat==='gewicht') return gewichtUnitRow(wk,u);
   return saunaUnitRow(wk,u);
 }
+let spotAddCat = 'lauf';
 function renderSpotlight(currentIdx){
   let wk = weeks[currentIdx];
   let titleText = t('dieseWoche');
@@ -1419,7 +1434,11 @@ function renderSpotlight(currentIdx){
     items.map(it=>`<div class="spotlight-item">
       <span class="row-cat-icon" style="color:var(--${it.cat})">${CATEGORY_ICON_SVG[it.cat]}</span>
       ${unitRowFor(it.cat, wk, it.u)}
-    </div>`).join('') + `</div>`;
+    </div>`).join('') + `</div>
+    <div class="spot-add-row">
+      <select class="spot-add-cat">` + ALL_CATS.map(c=>`<option value="${c}" ${c===spotAddCat?'selected':''}>${t('tab'+c.charAt(0).toUpperCase()+c.slice(1))}</option>`).join('') + `</select>
+      <button class="u-add spot-add" data-week="${wk.w}">${t('addEinheit')}</button>
+    </div>`;
 }
 function renderLapTrack(currentIdx){
   const frac = cat => weeks.map(wk=>{
@@ -1684,6 +1703,7 @@ function buildBulkForm(cat, mode){
     html += `<div class="unit-field"><span class="date-input-label">${t('updateRangeTo')}</span><select class="bulk-endweek">` +
       weeks.map(wk=>`<option value="${wk.w}">${t('woche')} ${wk.w} · ${fmt(wk.mo)}</option>`).join('') + `</select></div>`;
     html += bulkFieldHtml(t('anzahlWochen'),'number','bulk-count',{min:'1',value:'4',style:'width:70px;'});
+    html += `<div class="unit-field"><label class="bulk-biweekly-label"><input type="checkbox" class="bulk-biweekly"> ${t('biweekly')}</label></div>`;
   } else {
     html += bulkFieldHtml(t('anzahlNeueWochen'),'number','bulk-count',{min:'1',value:'52',style:'width:70px;'});
   }
@@ -1776,7 +1796,10 @@ function applyBulkUpdate(cat, formEl){
   const contentByDay = {};
   wds.forEach(wd=>{ contentByDay[wd] = readBulkContentForDay(cat, formEl, wd); });
 
-  const targetWeeks = weeks.filter(wk=>wk.w >= startWeek).slice(0, count);
+  const biweekly = !!(formEl.querySelector('.bulk-biweekly') && formEl.querySelector('.bulk-biweekly').checked);
+  // Zeitraum: Startwoche + (count-1) Wochen; bei Biweekly nur jede 2. Woche darin (Start, Start+2, ...)
+  const targetWeeks = weeks.filter(wk=>wk.w >= startWeek).slice(0, count)
+    .filter(wk=>!biweekly || (wk.w - startWeek) % 2 === 0);
   if(!targetWeeks.length){ showBulkStatus(formEl,t('bulkNoWeeksFound'), true); return; }
 
   let updated=0, added=0, removed=0;
@@ -1801,6 +1824,11 @@ function applyBulkUpdate(cat, formEl){
 // ---------------- Events ----------------
 document.getElementById('app').addEventListener('click', e=>{
   const addBtn = e.target.closest('.u-add');
+  if(addBtn && addBtn.classList.contains('spot-add')){
+    const sel = addBtn.parentElement.querySelector('.spot-add-cat');
+    spotAddCat = sel.value;
+    addUnit(spotAddCat, addBtn.dataset.week, true); return;
+  }
   if(addBtn){ addUnit(addBtn.dataset.cat, addBtn.dataset.week); return; }
   const removeBtn = e.target.closest('.u-remove');
   if(removeBtn){
@@ -1868,6 +1896,7 @@ document.getElementById('app').addEventListener('input', e=>{
   }
 });
 document.getElementById('app').addEventListener('change', e=>{
+  if(e.target.classList.contains('spot-add-cat')){ spotAddCat = e.target.value; return; }
   if(e.target.classList.contains('bulk-startweek') || e.target.classList.contains('bulk-endweek') || e.target.classList.contains('bulk-count')){
     const formEl = e.target.closest('.bulk-form');
     const startSel = formEl.querySelector('.bulk-startweek');
