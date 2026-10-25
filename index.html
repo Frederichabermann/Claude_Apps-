@@ -165,7 +165,8 @@
   .weekday-tag{color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
 
   .check-btn{border:none;background:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-faint);display:flex;align-items:center;gap:6px;padding:0;}
-  .check-btn::before{content:'';width:15px;height:15px;border-radius:4px;border:1.5px solid var(--text-faint);flex:none;}
+  .check-btn::before{content:none;}
+  .cb-box{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--text-faint);flex:none;display:inline-block;}
   .check-btn.lauf.done{color:var(--lauf);}
   .check-btn.lauf.done::before{background:var(--lauf);border-color:var(--lauf);}
   .check-btn.kraft.done{color:var(--kraft);}
@@ -291,6 +292,7 @@
       <p class="eyebrow" id="loadStatus" data-i18n="loading">Lade Trainingsdaten …</p>
       <div class="header-toggles">
         <button class="theme-toggle" id="langToggle">EN</button>
+        <span style="font-size:10px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;" title="Version">v2026-10-25b</span>
         <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
       </div>
     </div>
@@ -620,6 +622,10 @@ const I18N = {
     abWoche: 'Ab Woche',
     anzahlWochen: 'Anzahl Wochen',
     biweekly: 'Zweiwöchentlich (jede 2. Woche)',
+    phOptional: 'optional',
+    phLauf: 'z. B. Tempo, Intervalle',
+    phKraft: 'z. B. Beine',
+    phFlex: 'z. B. Yoga, Schwimmen, Radfahren',
     anzahlNeueWochen: 'Anzahl neuer Wochen',
     wochentage: 'Wochentage',
     uebernehmen: 'Übernehmen',
@@ -738,6 +744,10 @@ const I18N = {
     abWoche: 'From week',
     anzahlWochen: 'Number of weeks',
     biweekly: 'Biweekly (every 2nd week)',
+    phOptional: 'optional',
+    phLauf: 'e.g. tempo, intervals',
+    phKraft: 'e.g. legs',
+    phFlex: 'e.g. yoga, swimming, cycling',
     anzahlNeueWochen: 'Number of new weeks',
     wochentage: 'Weekdays',
     uebernehmen: 'Apply',
@@ -1291,6 +1301,12 @@ function getCurrentWeekIndex(){
 function esc(s){ return (s||'').replace(/"/g,'&quot;'); }
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function checkBtnHtml(cat, done){
+  const col = `var(--${cat})`;
+  const boxStyle = done ? `background:${col};border-color:${col};` : '';
+  const txtStyle = done ? `color:${col};` : '';
+  return `<button class="check-btn u-toggle ${cat} ${done?'done':''}" style="${txtStyle}"><span class="cb-box" style="${boxStyle}"></span>${done?t('erledigt'):t('erledigtFrage')}</button>`;
+}
 function laufUnitRow(wk,u){
   const target = parseFloat(u.planKm);
   let statusClass = '';
@@ -1302,15 +1318,15 @@ function laufUnitRow(wk,u){
     <div class="unit-field"><span class="date-input-label">${t('zielKm')}</span><input type="number" step="0.1" class="u-plankm" value="${u.planKm||''}" placeholder="km"></div>
     <div class="unit-field"><span class="date-input-label">${t('gelaufenKm')}</span><input type="number" step="0.1" class="u-actualkm" value="${u.actualKm||''}" placeholder="km"></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="z. B. Tempo, Intervalle">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="${t('phLauf')}">${escHtml(u.note)}</textarea></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
 }
 function kraftUnitRow(wk,u){
   return `<div class="unit-row ${isUnitDone('kraft',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="kraft" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('uebungFokus')}</span><textarea class="u-note" rows="1" placeholder="z. B. Beine">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle kraft ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('uebungFokus')}</span><textarea class="u-note" rows="1" placeholder="${t('phKraft')}">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span>${checkBtnHtml('kraft',u.done)}</div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
@@ -1319,7 +1335,7 @@ function saunaUnitRow(wk,u){
   return `<div class="unit-row ${isUnitDone('sauna',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="sauna" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtGaenge')}</span><input type="number" min="0" step="1" class="u-gaenge" value="${u.gaenge||''}" placeholder="0"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="${t('phOptional')}">${escHtml(u.note)}</textarea></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
@@ -1328,8 +1344,8 @@ function saunaUnitRow(wk,u){
 function flexUnitRow(wk,u){
   return `<div class="unit-row flex ${isUnitDone('flex',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="flex" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('training')}</span><textarea class="u-note" rows="1" placeholder="z. B. Yoga, Schwimmen, Radfahren">${escHtml(u.note)}</textarea></div>
-    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span><button class="check-btn u-toggle flex ${u.done?'done':''}">${u.done?t('erledigt'):t('erledigtFrage')}</button></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('training')}</span><textarea class="u-note" rows="1" placeholder="${t('phFlex')}">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field"><span class="date-input-label">${t('erledigt')}</span>${checkBtnHtml('flex',u.done)}</div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
@@ -1339,7 +1355,7 @@ function gewichtUnitRow(wk,u){
   return `<div class="unit-row gewicht ${isUnitDone('gewicht',u)?'status-over':''} ${u.date===todayISO()?'is-today':''}" data-cat="gewicht" data-week="${wk.w}" data-id="${u.id}">
     <div class="unit-field"><span class="date-input-label">${t('datum')}${u.date?` <span class="weekday-tag">${weekdayAbbr(u.date)}</span>`:''}</span><input type="date" class="u-date" value="${u.date||''}"></div>
     <div class="unit-field"><span class="date-input-label">${t('gewicht')}</span><input type="number" min="0" step="0.1" class="u-gewicht" value="${u.gewicht||''}" placeholder="kg"></div>
-    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="optional">${escHtml(u.note)}</textarea></div>
+    <div class="unit-field" style="flex:1;"><span class="date-input-label">${t('notiz')}</span><textarea class="u-note" rows="1" placeholder="${t('phOptional')}">${escHtml(u.note)}</textarea></div>
     <div class="unit-field"><span class="date-input-label">${t('erledigtAm')}${u.doneDate?` <span class="weekday-tag">${weekdayAbbr(u.doneDate)}</span>`:''}</span><input type="date" class="u-donedate" value="${u.doneDate||''}"></div>
     <button class="u-remove" title="${t('removeEinheit')}">✕</button>
   </div>`;
@@ -1661,17 +1677,17 @@ function bulkDayBlockHtml(cat, mode, day, saved){
   let fields = '';
   if(cat==='lauf'){
     fields = bulkFieldHtml(t('zielKm'),'number',`bulk-zielkm-${day}`,{step:'0.1',placeholder:'km',value:esc(saved.zielkm)}) +
-             bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+             bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:t('phOptional'),value:esc(saved.notiz)});
   } else if(cat==='kraft'){
-    fields = bulkFieldHtml(t('uebungFokus'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Beine',value:esc(saved.fokus)});
+    fields = bulkFieldHtml(t('uebungFokus'),'text',`bulk-fokus-${day}`,{placeholder:t('phKraft'),value:esc(saved.fokus)});
   } else if(cat==='flex'){
-    fields = bulkFieldHtml(t('training'),'text',`bulk-fokus-${day}`,{placeholder:'z. B. Yoga, Schwimmen',value:esc(saved.fokus)});
+    fields = bulkFieldHtml(t('training'),'text',`bulk-fokus-${day}`,{placeholder:t('phFlex'),value:esc(saved.fokus)});
   } else if(cat==='gewicht'){
     fields = bulkFieldHtml(t('gewicht'),'number',`bulk-gewicht-${day}`,{min:'0',step:'0.1',placeholder:'kg',value:esc(saved.gewicht)});
-    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:t('phOptional'),value:esc(saved.notiz)});
   } else {
     fields = bulkFieldHtml(t('gaenge'),'number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
-    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:'optional',value:esc(saved.notiz)});
+    if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:t('phOptional'),value:esc(saved.notiz)});
   }
   return `<div class="bulk-day-block" data-day="${day}"><div class="bulk-day-label">${WEEKDAY_LABELS[currentLang][day]}</div><div class="bulk-day-row">${fields}</div></div>`;
 }
@@ -1857,6 +1873,7 @@ document.getElementById('app').addEventListener('click', e=>{
     const cat = bulkTrigger.dataset.cat, mode = bulkTrigger.dataset.mode;
     const formEl = document.querySelector(`.bulk-form[data-cat="${cat}"]`);
     formEl.innerHTML = buildBulkForm(cat, mode);
+    formEl.dataset.mode = mode;
     formEl.style.display = 'block';
     if(mode==='update'){
       const startSel = formEl.querySelector('.bulk-startweek');
@@ -2110,6 +2127,9 @@ function applyLanguage(lang, skipRender){
     updateDateRangeLabel();
     buildStatScopeOptions();
     renderAll();
+    document.querySelectorAll('.bulk-form').forEach(f=>{
+      if(f.style.display==='block' && f.dataset.mode){ f.innerHTML = buildBulkForm(f.dataset.cat, f.dataset.mode); }
+    });
   }
 }
 (function initLanguage(){
