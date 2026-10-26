@@ -292,7 +292,6 @@
       <p class="eyebrow" id="loadStatus" data-i18n="loading">Lade Trainingsdaten …</p>
       <div class="header-toggles">
         <button class="theme-toggle" id="langToggle">EN</button>
-        <span style="font-size:10px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;" title="Version">v2026-10-25b</span>
         <button class="theme-toggle" id="themeToggle">☀️ Tagmodus</button>
       </div>
     </div>
@@ -643,7 +642,7 @@ const I18N = {
     kmGelaufen: 'km gelaufen',
     geplantWort: 'geplant',
     erledigtWort: 'erledigt',
-    spotlightSub: 'Woche {w} ({phase}) · {mo} – {so} · Einheiten bearbeiten geht auch direkt im jeweiligen Reiter',
+    spotlightSub: '{mo} – {so}',
     syncNeedToken: 'Bitte zuerst einen Personal Access Token eintragen.',
     syncUploading: 'Lade hoch …',
     syncUploaded: 'Erfolgreich hochgeladen · {time} · Gist-ID: {id}',
@@ -765,7 +764,7 @@ const I18N = {
     kmGelaufen: 'km completed',
     geplantWort: 'planned',
     erledigtWort: 'done',
-    spotlightSub: 'Week {w} ({phase}) · {mo} – {so} · sessions can also be edited directly in the respective tab',
+    spotlightSub: '{mo} – {so}',
     syncNeedToken: 'Please enter a Personal Access Token first.',
     syncUploading: 'Uploading …',
     syncUploaded: 'Successfully uploaded · {time} · Gist ID: {id}',
@@ -1149,7 +1148,7 @@ function addUnit(cat,week,keepInWeek){
   if(cat==='lauf') newUnit = {id, date:today, planKm:'', actualKm:'', note:''};
   else if(cat==='kraft' || cat==='flex') newUnit = {id, date:today, note:'', done:false, doneDate:''};
   else if(cat==='gewicht') newUnit = {id, date:today, gewicht:'', doneDate:'', note:''};
-  else newUnit = {id, date:today, gaenge:'', doneDate:''};
+  else newUnit = {id, date:today, gaenge:'0', doneDate:''};
   if(!state.units[cat][week]) state.units[cat][week] = [];
   state.units[cat][week].push(newUnit);
   if(!keepInWeek) relocateUnitIfNeeded(cat, week, newUnit);
@@ -1686,7 +1685,7 @@ function bulkDayBlockHtml(cat, mode, day, saved){
     fields = bulkFieldHtml(t('gewicht'),'number',`bulk-gewicht-${day}`,{min:'0',step:'0.1',placeholder:'kg',value:esc(saved.gewicht)});
     if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:t('phOptional'),value:esc(saved.notiz)});
   } else {
-    fields = bulkFieldHtml(t('gaenge'),'number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'1',value:esc(saved.gaenge)});
+    fields = bulkFieldHtml(t('gaenge'),'number',`bulk-gaenge-${day}`,{min:'0',step:'1',placeholder:'0',value:esc((saved.gaenge!==undefined && saved.gaenge!=='') ? saved.gaenge : '0')});
     if(mode==='update') fields += bulkFieldHtml(t('notiz'),'text',`bulk-notiz-${day}`,{placeholder:t('phOptional'),value:esc(saved.notiz)});
   }
   return `<div class="bulk-day-block" data-day="${day}"><div class="bulk-day-label">${WEEKDAY_LABELS[currentLang][day]}</div><div class="bulk-day-row">${fields}</div></div>`;
@@ -1766,7 +1765,7 @@ function readBulkContentForDay(cat, formEl, day){
   const gaengeEl = formEl.querySelector(`.bulk-gaenge-${day}`);
   const notizEl = formEl.querySelector(`.bulk-notiz-${day}`);
   const gaengeRaw = gaengeEl ? gaengeEl.value : '';
-  return {gaenge: gaengeRaw===''?1:parseInt(gaengeRaw,10), notiz: notizEl ? notizEl.value : ''};
+  return {gaenge: gaengeRaw===''?0:(parseInt(gaengeRaw,10)||0), notiz: notizEl ? notizEl.value : ''};
 }
 function buildBulkUnit(cat, date, content){
   if(cat==='lauf') return {id:uid(), date, planKm:content.zielKm, actualKm:'', doneDate:'', note:content.notiz||''};
@@ -1778,7 +1777,7 @@ function applyBulkContentToUnit(cat, unit, content){
   if(cat==='lauf'){ unit.planKm = content.zielKm; unit.note = content.notiz||''; }
   else if(cat==='kraft' || cat==='flex'){ unit.note = content.fokus||''; }
   else if(cat==='gewicht'){ unit.gewicht = content.gewicht; if(content.notiz!==undefined) unit.note = content.notiz||''; }
-  else { unit.gaenge = content.gaenge; if(content.notiz!==undefined) unit.note = content.notiz||''; }
+  else { if(!(content.gaenge===0 && parseInt(unit.gaenge,10)>0)) unit.gaenge = content.gaenge; if(content.notiz!==undefined) unit.note = content.notiz||''; }
 }
 function showBulkStatus(formEl, msg, isError){
   const el = formEl.querySelector('.bulk-status');
